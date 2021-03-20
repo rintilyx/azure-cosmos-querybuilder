@@ -7,6 +7,7 @@
     <groupId>com.blackhatd.devtools</groupId>
     <artifactId>cosmos-query-builder</artifactId>
     <version>1.0-SNAPSHOT</version>
+
     <build>
         <plugins>
             <plugin>

@@ -1,10 +1,12 @@
 package com.blackhat.devtools.cosmos.test;
 
+import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.SqlQuerySpec;
 import com.blackhat.devtools.cosmos.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.Duration;
@@ -13,8 +15,12 @@ import java.time.Duration;
 @Slf4j
 public class CosmosQueryTests {
 
+    @Mock
+    private CosmosClient cosmosClient;
+
     @Test
     public void oneConditionTest() {
+        cosmosClient.getDatabase("").getContainer("").queryItems(new SqlQuerySpec());
         CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
         cosmosQueryConfiguration.setCosmosClient(null);
         cosmosQueryConfiguration.setLogger(log);
