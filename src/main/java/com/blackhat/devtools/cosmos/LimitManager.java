@@ -12,7 +12,7 @@ public class LimitManager {
 
     public SqlQuerySpec buildQuery() {
         return new CosmosQueryBuilder(cosmosQueryConfiguration)
-                .buildQuery(SelectionType.SELECT);
+                .buildQuery();
     }
 
 }

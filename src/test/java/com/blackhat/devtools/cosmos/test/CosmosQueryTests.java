@@ -9,7 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
@@ -19,293 +20,189 @@ public class CosmosQueryTests {
     private CosmosClient cosmosClient;
 
     @Test
-    public void oneConditionTest() {
-        cosmosClient.getDatabase("").getContainer("").queryItems(new SqlQuerySpec());
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example1Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .where(lastNameCondition)
+                .from(countries)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void twoConditionInAndTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example2Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
+        // Build condition
+        Condition europeCondition = new ConditionBuilder(countries)
+                .attribute("name")
+                .equalsTo("Europe");
 
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-
-        Condition countryCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("country")
-                .equalsTo("Italy");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .where(lastNameCondition)
-                .and(countryCondition)
+                .from(countries)
+                .where(europeCondition)
                 .buildQuery();
-
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void twoConditionInOrTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example3Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
+        // Build condition
+        Condition europeCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
+                .attribute("name")
+                .includeIfNull(false) // if name is null, the condition will be removed from query
+                .equalsTo("Europe");
 
-        Condition andersenCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-
-        Condition rossiCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Rossi");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .where(andersenCondition)
-                .or(rossiCondition)
+                .from(countries)
+                .where(europeCondition)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
-    }
-
-
-    @Test
-    public void oneExpressionTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
-
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-
-        Condition andersenCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-        Condition rossiCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Rossi");
-        Condition countryCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("country")
-                .equalsTo("Italy");
-
-        Expression lastNameExpression = new ExpressionBuilder(andersenCondition).or(rossiCondition).build();
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
-                .select()
-                .from(cosmosCollection)
-                .where(lastNameExpression)
-                .and(countryCondition)
-                .buildQuery();
-
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void twoExpressionTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example4Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
+        // Build condition
+        Condition nameCondition = new ConditionBuilder(countries)
+                .attribute("name")
+                .equalsTo("Europe");
+        Condition codeCondition = new ConditionBuilder(countries)
+                .attribute("code")
+                .equalsTo("EU");
 
-        Condition andersenCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-        Condition rossiCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Rossi");
-        Condition countryItalyCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("country")
-                .equalsTo("Italy");
-        Condition countrySpainCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("country")
-                .equalsTo("Spain");
-
-        Expression lastNameExpression = new ExpressionBuilder(andersenCondition).or(rossiCondition).build();
-        Expression countryExpression = new ExpressionBuilder(countryItalyCondition).or(countrySpainCondition).build();
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .where(lastNameExpression)
-                .and(countryExpression)
+                .from(countries)
+                .where(nameCondition)
+                .and(codeCondition)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void oneJoinTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example5Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-        CosmosJoinClause childrensJoin = new CosmosJoinClause(cosmosCollection,"childrens", "c");
+        // Build conditions
+        Condition idCondition = new ConditionBuilder(countries)
+                .attribute("id")
+                .equalsTo(1);
+        Condition nameCondition = new ConditionBuilder(countries)
+                .attribute("name")
+                .startsWith("Europe");
+        Condition codeCondition = new ConditionBuilder(countries)
+                .attribute("code")
+                .equalsTo("EU");
 
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
+        // Build expressions
+        Expression nameAndCodeExpression = new ExpressionBuilder(nameCondition).and(codeCondition).build(); // This conditions will be checked together
 
-        Condition childrenCondition = new ConditionBuilder(childrensJoin)
-                .attribute("firstName")
-                .equalsTo("Carl");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .join(childrensJoin)
-                .where(lastNameCondition)
-                .and(childrenCondition)
+                .from(countries)
+                .where(idCondition)
+                .or(nameAndCodeExpression)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void nestedJoinTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example6Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-        CosmosJoinClause childrensJoin = new CosmosJoinClause(cosmosCollection,"childrens", "c");
-        CosmosJoinClause childrensFriendsJoin = new CosmosJoinClause(childrensJoin,"friends", "f");
+        // Define joins
+        CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
 
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
+        // Build conditions
+        Condition populationDensityCondition = new ConditionBuilder(statesJoin) // We specify that this condition will be built on join reference
+                .attribute("populationDensity")
+                .equalsTo(50000000);
 
-        Condition childrenCondition = new ConditionBuilder(childrensJoin)
-                .attribute("firstName")
-                .equalsTo("Carl");
-
-        Condition childrenFriendsCondition = new ConditionBuilder(childrensFriendsJoin)
-                .attribute("age")
-                .equalsTo(18);
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .join(childrensJoin)
-                .join(childrensFriendsJoin)
-                .where(lastNameCondition)
-                .and(childrenCondition)
-                .and(childrenFriendsCondition)
+                .from(countries)
+                .join(statesJoin)
+                .where(populationDensityCondition)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void offsetLimitTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example7Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-        CosmosJoinClause childrensJoin = new CosmosJoinClause(cosmosCollection, "childrens", "c");
+        // Define joins
+        CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
+        CosmosJoinReference citiesJoin = new CosmosJoinReference(statesJoin, "cities", "c");
 
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
+        // Build conditions
+        Condition populationDensityCondition = new ConditionBuilder(citiesJoin) // We specify that this condition will be built on join reference
+                .attribute("populationDensity")
+                .equalsTo(3500000);
 
-        Condition childrenCondition = new ConditionBuilder(childrensJoin)
-                .attribute("firstName")
-                .equalsTo("Carl");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
-                .from(cosmosCollection)
-                .join(childrensJoin)
-                .where(lastNameCondition)
-                .and(childrenCondition)
-                .offset(10)
-                .limit(5)
+                .from(countries)
+                .join(statesJoin)
+                .join(citiesJoin)
+                .where(populationDensityCondition)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
     }
 
     @Test
-    public void orderByTest() {
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(null);
-        cosmosQueryConfiguration.setLogger(log);
-        cosmosQueryConfiguration.setDatabase("myapp-db");
-        cosmosQueryConfiguration.setMaxAttempts(3);
-        cosmosQueryConfiguration.setOnRetryFixedDelay(Duration.ofSeconds(1));
+    public void example8Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
 
-        CosmosCollection cosmosCollection = new CosmosCollection("Families");
-        CosmosJoinClause childrensJoin = new CosmosJoinClause(cosmosCollection, "childrens", "c");
-
-        Condition lastNameCondition = new ConditionBuilder(cosmosCollection)
-                .attribute("lastName")
-                .equalsTo("Andersen");
-
-        Condition childrenCondition = new ConditionBuilder(childrensJoin)
-                .attribute("firstName")
-                .equalsTo("Carl");
-
-        SqlQuerySpec sqlQuerySpec = new CosmosQuery(cosmosQueryConfiguration)
-                .select()
-                .from(cosmosCollection)
-                .join(childrensJoin)
-                .where(lastNameCondition)
-                .and(childrenCondition)
-                .orderBy(new OrderByClause("lastName", SortingCriteria.ASC), new OrderByClause("createdAt", SortingCriteria.DESC))
-                .offset(10)
-                .limit(5)
+        List<String> fields = Arrays.asList("name", "code");
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
+                .select(fields)
+                .from(countries)
                 .buildQuery();
 
-        System.out.println(sqlQuerySpec.queryText());
+        System.out.println(query.queryText());
+    }
+
+    @Test
+    public void example9Test() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
+
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
+                .count()
+                .from(countries)
+                .buildQuery();
+
+        System.out.println(query.queryText());
     }
 
 

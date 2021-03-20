@@ -82,7 +82,7 @@ public class WhereManager {
     public SqlQuerySpec buildQuery() {
         this.cosmosQueryConfiguration.setInternalExpressionList(this.internalExpressionList);
         return new CosmosQueryBuilder(this.cosmosQueryConfiguration)
-                .buildQuery(SelectionType.SELECT);
+                .buildQuery();
     }
 
 }

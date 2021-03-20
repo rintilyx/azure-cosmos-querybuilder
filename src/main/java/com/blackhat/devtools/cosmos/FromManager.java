@@ -1,19 +1,21 @@
 package com.blackhat.devtools.cosmos;
 
+import com.azure.data.cosmos.SqlQuerySpec;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class FromManager {
 
     private final CosmosQueryConfiguration cosmosQueryConfiguration;
-    private final List<CosmosJoinClause> joins = new ArrayList<>();
+    private final List<CosmosJoinReference> joins = new ArrayList<>();
 
     public FromManager(CosmosQueryConfiguration cosmosQueryConfiguration) {
         this.cosmosQueryConfiguration = cosmosQueryConfiguration;
     }
 
-    public FromManager join(CosmosJoinClause cosmosJoinClause) {
-        this.joins.add(cosmosJoinClause);
+    public FromManager join(CosmosJoinReference cosmosJoinReference) {
+        this.joins.add(cosmosJoinReference);
         return this;
     }
 
@@ -25,6 +27,10 @@ public class FromManager {
     public WhereManager where(Expression expression) {
         this.cosmosQueryConfiguration.setJoins(joins);
         return new WhereManager(this.cosmosQueryConfiguration, expression);
+    }
+
+    public SqlQuerySpec buildQuery() {
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).buildQuery();
     }
 
 

@@ -1,12 +1,12 @@
 package com.blackhat.devtools.cosmos;
 
-public class CosmosJoinClause extends CosmosReference {
+public class CosmosJoinReference extends CosmosReference {
 
     private CosmosReference parent;
 
-    public CosmosJoinClause(CosmosReference parent, String name, String alias) {
+    public CosmosJoinReference(CosmosReference parent, String name, String alias) {
         this.setName(name);
-        this.setAlias(alias+"_jref");
+        this.setAlias(alias + "_jref");
         this.parent = parent;
     }
 

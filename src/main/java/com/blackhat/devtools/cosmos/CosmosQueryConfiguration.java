@@ -14,10 +14,11 @@ public class CosmosQueryConfiguration {
     private Logger logger;
     private long maxAttempts = 1L;
     private Duration onRetryFixedDelay;
+    private SelectionType selectionType = SelectionType.SELECT;
 
     private List<String> fields;
     private CosmosCollection collection;
-    private List<CosmosJoinClause> joins;
+    private List<CosmosJoinReference> joins;
     private List<InternalExpression> internalExpressionList = new ArrayList<>();
     private List<OrderByClause> orderBy;
     private Integer offset;
@@ -79,11 +80,11 @@ public class CosmosQueryConfiguration {
         this.collection = collection;
     }
 
-    List<CosmosJoinClause> getJoins() {
+    List<CosmosJoinReference> getJoins() {
         return joins;
     }
 
-    void setJoins(List<CosmosJoinClause> joins) {
+    void setJoins(List<CosmosJoinReference> joins) {
         this.joins = joins;
     }
 
@@ -117,5 +118,13 @@ public class CosmosQueryConfiguration {
 
     void setLimit(Integer limit) {
         this.limit = limit;
+    }
+
+    public SelectionType getSelectionType() {
+        return selectionType;
+    }
+
+    public void setSelectionType(SelectionType selectionType) {
+        this.selectionType = selectionType;
     }
 }

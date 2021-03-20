@@ -26,15 +26,15 @@ public class CosmosQueryBuilder {
         this.cosmosQueryConfiguration = cosmosQueryConfiguration;
     }
 
-    Flux<FeedResponse<CosmosItemProperties>> queryItems(SelectionType selectionType, FeedOptions feedOptions) {
+    Flux<FeedResponse<CosmosItemProperties>> queryItems(FeedOptions feedOptions) {
         return Flux.just(this.cosmosQueryConfiguration.getCosmosClient())
                 .map(cosmosClient -> cosmosClient.getDatabase(this.cosmosQueryConfiguration.getDatabase()))
                 .map(cosmosDatabase -> cosmosDatabase.getContainer(this.cosmosQueryConfiguration.getCollection().getName()))
-                .flatMap(cosmosContainer -> cosmosContainer.queryItems(this.buildQuery(selectionType), feedOptions));
+                .flatMap(cosmosContainer -> cosmosContainer.queryItems(this.buildQuery(), feedOptions));
     }
 
-    <T> Flux<T> queryItems(SelectionType selectionType, FeedOptions feedOptions, Class<T> targetClass) {
-        return this.queryItems(selectionType, feedOptions)
+    <T> Flux<T> queryItems(FeedOptions feedOptions, Class<T> targetClass) {
+        return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
                 .flatMap(cosmosItemProperties -> applyConvert(cosmosItemProperties, (c) -> {
                             try {
@@ -47,8 +47,8 @@ public class CosmosQueryBuilder {
                 );
     }
 
-    <T> Flux<T> queryItems(SelectionType selectionType, FeedOptions feedOptions, Function<CosmosItemProperties, T> customConverter) {
-        return this.queryItems(selectionType, feedOptions)
+    <T> Flux<T> queryItems(FeedOptions feedOptions, Function<CosmosItemProperties, T> customConverter) {
+        return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
                 .flatMap(cosmosItemProperties -> applyConvert(cosmosItemProperties, customConverter));
     }
@@ -57,7 +57,7 @@ public class CosmosQueryBuilder {
         return Flux.create(sink -> {
             try {
                 T t = converter.apply(cosmosItemProperties);
-                if(t != null)
+                if (t != null)
                     sink.next(t);
                 sink.complete();
             } catch (Exception e) {
@@ -67,13 +67,13 @@ public class CosmosQueryBuilder {
     }
 
 
-    SqlQuerySpec buildQuery(SelectionType selectionType) {
+    SqlQuerySpec buildQuery() {
         final SqlParameterList sqlParameters = new SqlParameterList();
 
         String expressions = buildWhere(sqlParameters);
 
         String query = QUERY_PATTERN
-                .replace("${SELECT}", buildSelect(selectionType))
+                .replace("${SELECT}", buildSelect(this.cosmosQueryConfiguration.getSelectionType()))
                 .replace("${COLLECTION_NAME}", this.cosmosQueryConfiguration.getCollection().getName())
                 .replace("${ALIAS}", this.cosmosQueryConfiguration.getCollection().getAlias())
                 .replace("${JOINS}", buildJoins(this.cosmosQueryConfiguration.getJoins()))
@@ -117,7 +117,7 @@ public class CosmosQueryBuilder {
                 .orElse(StringUtils.EMPTY);
     }
 
-    private String buildJoins(List<CosmosJoinClause> joins) {
+    private String buildJoins(List<CosmosJoinReference> joins) {
         return Optional.ofNullable(joins)
                 .map(Collection::stream)
                 .orElseGet(Stream::empty)

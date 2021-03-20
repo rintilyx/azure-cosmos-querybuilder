@@ -107,7 +107,7 @@ public SqlQuerySpec buildQuery(String name) {
                     .equalsTo(name);
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .where(europeCondition)
@@ -143,7 +143,7 @@ public SqlQuerySpec buildQuery(String name) {
                     .equalsTo(name);
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .where(europeCondition)
@@ -181,7 +181,7 @@ public SqlQuerySpec buildQuery(String name, String code) {
                         .equalsTo(code);
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .where(nameCondition)
@@ -197,7 +197,7 @@ WHERE c.name = "Europe" AND c.code = "EU"
 ```
 
 
-### Example 4: Introduction to Expression (multiple conditions binding)
+### Example 5: Introduction to Expression (multiple conditions binding)
 If you want to check a tuple of conditions with another one, you can use the Expressions!
 
 #### How to build an Expression
@@ -246,7 +246,7 @@ public SqlQuerySpec buildQuery(Integer id, String name, String code) {
     Expression nameAndCodeExpression = new ExpressionBuilder(nameCondition).and(codeCondition).build(); // This conditions will be checked together
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .where(idCondition)
@@ -262,11 +262,11 @@ WHERE c.id = 1 OR (STARTSWITH(c.name, "Europe") AND c.code = "EU")
 ```
 
 
-### Example 5: Introduction to JOIN
-In this example we want to find Country having states with a populationDensity > 5.000.000
+### Example 6: Introduction to JOIN
+In this example we want to find Country having states with a populationDensity > 50.000.000
 ```java
 public void readData() {
-    SqlQuerySpec query = buildQuery(5000000);
+    SqlQuerySpec query = buildQuery(50000000);
 
     cosmosClient.getDatabase("mydatabase")
         .getContainer("Countries")
@@ -286,7 +286,7 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
                         .equalsTo(populationDensity);
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .join(statesJoin)
@@ -299,11 +299,11 @@ Result
 SELECT c
 FROM Countries c
 JOIN s_jref IN c.states
-WHERE s_jref.populationDensity > 5000000
+WHERE s_jref.populationDensity > 50000000
 ```
 
-### Example 6: Usage of multiple JOINS
-In this example we want to search countries having a cities with populationDensity > 3500000
+### Example 7: Usage of multiple JOINS
+In this example we want to search countries having a cities with populationDensity > 3.500.000
 ```java
 public void readData() {
     SqlQuerySpec query = buildQuery(3500000);
@@ -327,7 +327,7 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
                         .equalsTo(populationDensity);
 
     // Build query
-    return new CosmosQuery(cosmosQueryConfiguration)
+    return new CosmosQuery()
             .select()
             .from(countries)
             .join(statesJoin)
@@ -342,11 +342,10 @@ SELECT c
 FROM Countries c
 JOIN s_jref IN c.states
 JOIN c_jref IN s_jref.cities
-WHERE c_jref.populationDensity > 5000000
+WHERE c_jref.populationDensity > 3500000
 ```
 
-### Example 7: Select partial fields
-In this example we want to search countries having a cities with populationDensity > 3500000
+### Example 8: Select partial fields
 ```java
     List<String> fields = Arrays.asList("name","code");
     // Build query
