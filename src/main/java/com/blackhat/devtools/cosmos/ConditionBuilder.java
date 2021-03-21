@@ -179,7 +179,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using STARTSWITH operator
      * @return a Condition properly built
      */
-    public Condition startsWith(Object value) {
+    public Condition startsWith(String value) {
         return this.startsWith(value, null);
     }
 
@@ -194,7 +194,7 @@ public class ConditionBuilder {
      * @param boolExpr Optional value for ignoring case. When set to true, STARTSWITH will do a case-insensitive search. When unspecified, this value is false.
      * @return a Condition properly built
      */
-    public Condition startsWith(Object value, Boolean boolExpr) {
+    public Condition startsWith(String value, Boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.STARTS_WITH;
         this.boolExpr = boolExpr;
@@ -208,11 +208,10 @@ public class ConditionBuilder {
      * <p>
      * For more details please visit: https://docs.microsoft.com/en-us/azure/cosmos-db/sql-query-endswith
      *
-     * @param value    indicates the value to be checked using ENDSWITH operator
-     * @param boolExpr Optional value for ignoring case. When set to true, STARTSWITH will do a case-insensitive search. When unspecified, this value is false.
+     * @param value indicates the value to be checked using ENDSWITH operator
      * @return a Condition properly built
      */
-    public Condition endsWith(Object value) {
+    public Condition endsWith(String value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.ENDS_WITH;
         return buildCondition();
@@ -229,7 +228,7 @@ public class ConditionBuilder {
      * @param boolExpr Optional value for ignoring case. When set to true, ENDSWITH will do a case-insensitive search. When unspecified, this value is false.
      * @return a Condition properly built
      */
-    public Condition endsWith(Object value, boolean boolExpr) {
+    public Condition endsWith(String value, boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.ENDS_WITH;
         this.boolExpr = boolExpr;
@@ -246,7 +245,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using STRINGEQUALS operator
      * @return a Condition properly built
      */
-    public Condition stringEquals(Object value) {
+    public Condition stringEquals(String value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.STRING_EQUALS;
         return buildCondition();
@@ -263,7 +262,7 @@ public class ConditionBuilder {
      * @param boolExpr Optional value for ignoring case. When set to true, StringEquals will do a case-insensitive search. When unspecified, this value is false.
      * @return a Condition properly built
      */
-    public Condition stringEquals(Object value, boolean boolExpr) {
+    public Condition stringEquals(String value, boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.STRING_EQUALS;
         this.boolExpr = boolExpr;
@@ -280,7 +279,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using >= operator
      * @return a Condition properly built
      */
-    public Condition gte(Object value) {
+    public Condition gte(Number value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.GREATER_THAN_EQ;
         return buildCondition();
@@ -296,7 +295,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using > operator
      * @return a Condition properly built
      */
-    public Condition gt(Object value) {
+    public Condition gt(Number value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.GREATER_THAN;
         return buildCondition();
@@ -312,7 +311,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using < operator
      * @return a Condition properly built
      */
-    public Condition lt(Object value) {
+    public Condition lt(Number value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.LOWER_THAN;
         return buildCondition();
@@ -328,7 +327,7 @@ public class ConditionBuilder {
      * @param value indicates the value to be checked using <= operator
      * @return a Condition properly built
      */
-    public Condition lte(Object value) {
+    public Condition lte(Number value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.LOWER_THAN_EQ;
         return buildCondition();
