@@ -53,6 +53,22 @@ public class ConditionBuilder {
     }
 
     /**
+     * Create a condition using LIKE operator
+     * <p>
+     * Final result will be: c.country LIKE "%urope"
+     * <p>
+     * For more details please visit: https://devblogs.microsoft.com/cosmosdb/like-keyword-cosmosdb/
+     *
+     * @param value indicates the value to be checked using LIKE operator
+     * @return a Condition properly built
+     */
+    public Condition like(String value) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.LIKE;
+        return this.buildCondition();
+    }
+
+    /**
      * Create a condition using ARRAY_CONTAINS operator
      * <p>
      * Final result will be: ARRAY_CONTAINS(c.states, {"name":"Italy"})
