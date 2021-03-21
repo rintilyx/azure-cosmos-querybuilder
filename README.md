@@ -1,10 +1,10 @@
 # Azure Cosmos Query Builder
 
 ## Features
-- Write dynamic SQL query for Azure Cosmos using JSON documents.
+- Build dynamic SQL query for Azure Cosmos.
 - You can choose if a condition will be included in query if value is null
-- Build simple or complex conditions
-- JOINS support
+- Build simple or complex expressions
+- single or multiple JOIN support
 - Supported operators: 
    - EQUALS
    - GT
@@ -15,6 +15,15 @@
    - STARTSWITH
    - ARRAY_CONTAINS
    - IN
+   - LIKE
+   - IS_ARRAY
+   - IS_DEFINED
+   - IS_BOOL
+   - IS_NULL
+   - IS_OBJECT
+   - IS_PRIMITIVE
+   - IS_NUMBER
+   - IS_PRIMITIVE
    
 ## 1. What you can do?
 In order to explain what you can do with this library, we can use this JSON document that represent an array of countries as example
@@ -24,23 +33,17 @@ In order to explain what you can do with this library, we can use this JSON docu
 [
     {
         "id": 1,
-        "name": "Europe",
-        "code": "EU",
-        "states": [
+        "name": "Italy",
+        "code": "IT",
+        "regions": [
             {
-                "name": "Italy",
-                "code": "IT",
-                "populationDensity": 60244000,
+                "name": "Campania",
+                "populationDensity": 5800000,
                 "cities": [
-                    {
-                        "name": "Rome",
-                        "code": "RM",
-                        "populationDensity": 4253000
-                    },
                     {
                         "name": "Napoli",
                         "code": "NA",
-                        "populationDensity": 3127000
+                        "populationDensity": 967069
                     } 
                 ]
             }
@@ -82,6 +85,8 @@ FROM Countries c
 
 #### How to build a Condition
 ```java
+CosmosCollection countries = new CosmosCollection("Countries");
+
 Condition condition = new ConditionBuilder(countries)
                 .attribute("name")
                 .equalsTo(name);
@@ -202,6 +207,8 @@ If you want to check a tuple of conditions with another one, you can use the Exp
 
 #### How to build an Expression
 ```java
+CosmosCollection countries = new CosmosCollection("Countries");
+
 Condition condition1 = new ConditionBuilder(countries)
                 .attribute("id")
                 .equalsTo(1);
@@ -263,7 +270,7 @@ WHERE c.id = 1 OR (STARTSWITH(c.name, "Europe") AND c.code = "EU")
 
 
 ### Example 6: Introduction to JOIN
-In this example we want to find Country having states with a populationDensity > 50.000.000
+In this example we want to find Country having regions with a populationDensity > 50.000.000
 ```java
 public void readData() {
     SqlQuerySpec query = buildQuery(50000000);
@@ -278,18 +285,18 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Define joins
-    CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
+    CosmosJoinReference regionsJoin = new CosmosJoinReference(countries, "regions", "s");
 
     // Build conditions
-    Condition populationDensityCondition = new ConditionBuilder(statesJoin) // We specify that this condition will be built on join reference
+    Condition populationDensityCondition = new ConditionBuilder(regionsJoin) // We specify that this condition will be built on join reference
                         .attribute("populationDensity")
-                        .equalsTo(populationDensity);
+                        .gt(populationDensity);
 
     // Build query
     return new CosmosQuery()
             .select()
             .from(countries)
-            .join(statesJoin)
+            .join(regionsJoin)
             .where(populationDensityCondition)
             .buildQuery();
 }
@@ -298,7 +305,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-JOIN s_jref IN c.states
+JOIN s_jref IN c.regions
 WHERE s_jref.populationDensity > 50000000
 ```
 
@@ -318,19 +325,19 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Define joins
-    CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
-    CosmosJoinReference citiesJoin = new CosmosJoinReference(statesJoin, "cities", "c");
+    CosmosJoinReference regionsJoin = new CosmosJoinReference(countries, "regions", "s");
+    CosmosJoinReference citiesJoin = new CosmosJoinReference(regionsJoin, "cities", "c");
 
     // Build conditions
     Condition populationDensityCondition = new ConditionBuilder(citiesJoin) // We specify that this condition will be built on join reference
                         .attribute("populationDensity")
-                        .equalsTo(populationDensity);
+                        .gt(populationDensity);
 
     // Build query
     return new CosmosQuery()
             .select()
             .from(countries)
-            .join(statesJoin)
+            .join(regionsJoin)
             .join(citiesJoin)
             .where(populationDensityCondition)
             .buildQuery();
@@ -340,7 +347,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-JOIN s_jref IN c.states
+JOIN s_jref IN c.regions
 JOIN c_jref IN s_jref.cities
 WHERE c_jref.populationDensity > 3500000
 ```

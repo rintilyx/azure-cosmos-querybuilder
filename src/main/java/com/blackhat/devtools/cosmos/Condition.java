@@ -38,6 +38,7 @@ public class Condition {
         return this.value;
     }
 
+
     ComparisonOperator getComparisonOperator() {
         return this.comparisonOperator;
     }
