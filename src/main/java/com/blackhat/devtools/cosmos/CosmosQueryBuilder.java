@@ -1,9 +1,10 @@
 package com.blackhat.devtools.cosmos;
 
 import com.azure.data.cosmos.*;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
@@ -14,19 +15,26 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 public class CosmosQueryBuilder {
 
     private static final String QUERY_PATTERN = "${SELECT} FROM ${COLLECTION_NAME} ${ALIAS} ${JOINS} ${WHERE} ${ORDER_BY} ${OFFSET} ${LIMIT}";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CosmosQueryBuilder.class);
     private final CosmosQueryConfiguration cosmosQueryConfiguration;
     private Integer sequence = 0;
 
-    public CosmosQueryBuilder(CosmosQueryConfiguration cosmosQueryConfiguration) {
+    CosmosQueryBuilder(CosmosQueryConfiguration cosmosQueryConfiguration) {
+        if (cosmosQueryConfiguration == null || cosmosQueryConfiguration.getCollection() == null)
+            throw new RuntimeException("CosmosQueryConfiguration or collection cannot be null");
         this.cosmosQueryConfiguration = cosmosQueryConfiguration;
     }
 
     Flux<FeedResponse<CosmosItemProperties>> queryItems(FeedOptions feedOptions) {
+        if (this.cosmosQueryConfiguration.getCosmosClient() == null)
+            throw new RuntimeException("CosmosClient must be provided");
+        if (this.cosmosQueryConfiguration.getDatabase() == null)
+            throw new RuntimeException("Database must be provided");
+
         return Flux.just(this.cosmosQueryConfiguration.getCosmosClient())
                 .map(cosmosClient -> cosmosClient.getDatabase(this.cosmosQueryConfiguration.getDatabase()))
                 .map(cosmosDatabase -> cosmosDatabase.getContainer(this.cosmosQueryConfiguration.getCollection().getName()))
@@ -40,7 +48,10 @@ public class CosmosQueryBuilder {
                             try {
                                 return c.getObject(targetClass);
                             } catch (IOException ex) {
-                                this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to Object is failed");
+                                if (this.cosmosQueryConfiguration.getLogger() != null)
+                                    this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to Object is failed: {}", ex.getMessage());
+                                else
+                                    LOGGER.warn("Conversion JSON to Object is failed: {}", ex.getMessage());
                                 return null;
                             }
                         })
@@ -82,15 +93,25 @@ public class CosmosQueryBuilder {
                 .replace("${OFFSET}", buildOffset(this.cosmosQueryConfiguration.getOffset()))
                 .replace("${ORDER_BY}", buildOrderBy(this.cosmosQueryConfiguration.getCollection().getAlias(), this.cosmosQueryConfiguration.getOrderBy()));
 
-        if (this.cosmosQueryConfiguration.getLogger() != null) {
+        if (this.cosmosQueryConfiguration.isExplicitLog()) {
             String formattedQuery = query.replace("", "");
             for (SqlParameter sqlParameter : sqlParameters) {
                 formattedQuery = formattedQuery.replace(sqlParameter.name(), sqlParameter.value(Object.class) != null ? sqlParameter.value(Object.class).toString() : "null");
             }
-            this.cosmosQueryConfiguration.getLogger().debug("{}", formattedQuery);
+            logQuery(formattedQuery);
+        } else {
+            logQuery(query);
         }
 
         return new SqlQuerySpec(query, sqlParameters);
+    }
+
+    private void logQuery(String query) {
+        if (this.cosmosQueryConfiguration.getLogger() != null) {
+            this.cosmosQueryConfiguration.getLogger().debug("{}", query);
+        } else {
+            LOGGER.debug("{}", query);
+        }
     }
 
     private String buildSelect(SelectionType selectionType) {
@@ -147,27 +168,32 @@ public class CosmosQueryBuilder {
             result.append(buildCondition(internalCondition.getCondition(), sqlParameters));
         }
         result.append(")");
-        return result.toString();
+        return !StringUtils.equals("()", result) ? result.toString() : "";
     }
 
     private String buildCondition(Condition condition, SqlParameterList sqlParameters) {
-        if(includeInQuery(condition)) {
+        if (includeInQuery(condition)) {
             String sqlParamName = getSqlParamName(sqlParameters, condition);
-            return condition.getComparisonOperator().buildCondition(condition.getCosmosReference().getAlias(), condition.getAttribute(), sqlParamName);
+            condition.setSqlParamName(sqlParamName);
+            return condition.getComparisonOperator().buildCondition(condition);
         } else {
             return "";
         }
     }
 
-    private boolean includeInQuery(Condition Condition) {
-        return BooleanUtils.isTrue(Condition.isIncludedIfNull()) || Condition.getValue() != null;
+    private boolean includeInQuery(Condition condition) {
+        return BooleanUtils.isTrue(condition.isIncludedIfNull()) || condition.getValue() != null;
     }
 
-    private String getSqlParamName(SqlParameterList sqlParameterList, Condition Condition) {
-        String result = "@" + Condition.getAttribute() + "_" + this.sequence;
-        incrementSequence();
-        sqlParameterList.add(new SqlParameter().name(result).value(Condition.getValue()));
-        return result;
+    private String getSqlParamName(SqlParameterList sqlParameterList, Condition condition) {
+        if (condition.getValue() != null) {
+            String result = "@" + condition.getAttribute() + "_" + this.sequence;
+            incrementSequence();
+            sqlParameterList.add(new SqlParameter().name(result).value(condition.getValue()));
+            return result;
+        } else {
+            return null;
+        }
     }
 
     private void incrementSequence() {

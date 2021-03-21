@@ -1,17 +1,17 @@
 package com.blackhat.devtools.cosmos;
 
-public enum BooleanOperator {
+enum BooleanOperator {
 
     AND("AND"),
     OR("OR");
 
-    private String value;
+    private final String value;
 
     BooleanOperator(String value) {
         this.value = value;
     }
 
-    public String value() {
+    String value() {
         return this.value;
     }
 

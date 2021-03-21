@@ -2,7 +2,7 @@ package com.blackhat.devtools.cosmos;
 
 public class CosmosJoinReference extends CosmosReference {
 
-    private CosmosReference parent;
+    private final CosmosReference parent;
 
     public CosmosJoinReference(CosmosReference parent, String name, String alias) {
         this.setName(name);
@@ -10,7 +10,7 @@ public class CosmosJoinReference extends CosmosReference {
         this.parent = parent;
     }
 
-    public CosmosReference getParent() {
-        return parent;
+    CosmosReference getParent() {
+        return this.parent;
     }
 }

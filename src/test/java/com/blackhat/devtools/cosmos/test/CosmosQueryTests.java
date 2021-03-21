@@ -61,7 +61,7 @@ public class CosmosQueryTests {
         Condition europeCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
                 .attribute("name")
                 .includeIfNull(false) // if name is null, the condition will be removed from query
-                .equalsTo("Europe");
+                .equalsTo(null);
 
         SqlQuerySpec query = new CosmosQuery()
                 .select()
@@ -205,5 +205,62 @@ public class CosmosQueryTests {
         System.out.println(query.queryText());
     }
 
+    @Test
+    public void arrayContainsNegatedTest() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
+
+        State state = new State();
+        state.setName("Europe");
+
+        Condition condition = new ConditionBuilder(countries)
+                .attribute("states")
+                .arrayContains(state, true)
+                .negated();
+
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
+                .count()
+                .from(countries)
+                .where(condition)
+                .buildQuery();
+
+        System.out.println(query.queryText());
+    }
+
+    @Test
+    public void arrayContainsTest() {
+        // Define collection
+        CosmosCollection countries = new CosmosCollection("Countries");
+
+        State state = new State();
+        state.setName("Europe");
+
+        Condition condition = new ConditionBuilder(countries)
+                .attribute("states")
+                .arrayContains(state, true);
+
+        // Build query
+        SqlQuerySpec query = new CosmosQuery()
+                .count()
+                .from(countries)
+                .where(condition)
+                .buildQuery();
+
+        System.out.println(query.queryText());
+    }
+
+
+    private static class State {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
 
 }
