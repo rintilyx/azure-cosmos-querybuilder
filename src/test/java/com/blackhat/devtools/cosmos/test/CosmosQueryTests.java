@@ -3,7 +3,6 @@ package com.blackhat.devtools.cosmos.test;
 import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.SqlQuerySpec;
 import com.blackhat.devtools.cosmos.*;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -13,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
-@Slf4j
 public class CosmosQueryTests {
 
     @Mock

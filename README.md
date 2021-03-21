@@ -33,17 +33,16 @@ In order to explain what you can do with this library, we can use this JSON docu
 [
     {
         "id": 1,
-        "name": "Italy",
-        "code": "IT",
-        "regions": [
+        "name": "United States",
+        "code": "US",
+        "states": [
             {
-                "name": "Campania",
-                "populationDensity": 5800000,
+                "name": "Illinois",
+                "populationDensity": 12671821,
                 "cities": [
                     {
-                        "name": "Napoli",
-                        "code": "NA",
-                        "populationDensity": 967069
+                        "name": "Chicago",
+                        "populationDensity": 2693976
                     } 
                 ]
             }
@@ -95,7 +94,7 @@ Condition condition = new ConditionBuilder(countries)
 #### Full example
 ```java
 public void readData() {
-    SqlQuerySpec query = buildQuery("Europe"); // Search Europe from Countries
+    SqlQuerySpec query = buildQuery("United States"); // Search United States from Countries
 
     cosmosClient.getDatabase("mydatabase")
         .getContainer("Countries")
@@ -107,7 +106,7 @@ public SqlQuerySpec buildQuery(String name) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Build condition
-    Condition europeCondition = new ConditionBuilder(countries)
+    Condition United StatesCondition = new ConditionBuilder(countries)
                     .attribute("name")
                     .equalsTo(name);
 
@@ -115,7 +114,7 @@ public SqlQuerySpec buildQuery(String name) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .where(europeCondition)
+            .where(United StatesCondition)
             .buildQuery();
 }
 ```
@@ -123,7 +122,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-WHERE c.name = "Europe"
+WHERE c.name = "United States"
 ```
 
 ### Example 3: Exclude Condition if value is null
@@ -142,7 +141,7 @@ public SqlQuerySpec buildQuery(String name) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Build condition
-    Condition europeCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
+    Condition United StatesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
                     .attribute("name")
                     .includeIfNull(false) // if name is null, the condition will be removed from query
                     .equalsTo(name);
@@ -151,7 +150,7 @@ public SqlQuerySpec buildQuery(String name) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .where(europeCondition)
+            .where(United StatesCondition)
             .buildQuery();
 }
 ```
@@ -163,10 +162,10 @@ FROM Countries c
 If a Condition contains null as value it will be removed from query
 
 ### Example 4: Combine multiple Conditions
-Search Countries having "Europe" as name and "EU" as code.
+Search Countries having "United States" as name and "US" as code.
 ```java
 public void readData() {
-    SqlQuerySpec query = buildQuery("Europe", "EU");
+    SqlQuerySpec query = buildQuery("United States", "US");
 
     cosmosClient.getDatabase("mydatabase")
         .getContainer("Countries")
@@ -198,7 +197,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-WHERE c.name = "Europe" AND c.code = "EU"
+WHERE c.name = "United States" AND c.code = "US"
 ```
 
 
@@ -214,20 +213,20 @@ Condition condition1 = new ConditionBuilder(countries)
                 .equalsTo(1);
 Condition condition2 = new ConditionBuilder(countries)
                 .attribute("name")
-                .equalsTo("Europe");
+                .equalsTo("United States");
 Condition condition3 = new ConditionBuilder(countries)
                 .attribute("code")
-                .equalsTo("EU");
+                .equalsTo("US");
 
 new ExpressionBuilder(condition1).and(condition2).or(condition3).build(); // You can aggregate all conditions in order to check togheter all of them
 
 ```
 
-In this example we want to find countries with id = 1 OR (name startsWith "Euro" AND code equals to "EU")
+In this example we want to find countries with id = 1 OR (name startsWith "United" AND code equals to "US")
 
 ```java
 public void readData() {
-    SqlQuerySpec query = buildQuery(1, "Euro", "EU");
+    SqlQuerySpec query = buildQuery(1, "United", "US");
 
     cosmosClient.getDatabase("mydatabase")
         .getContainer("Countries")
@@ -265,12 +264,12 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-WHERE c.id = 1 OR (STARTSWITH(c.name, "Europe") AND c.code = "EU")
+WHERE c.id = 1 OR (STARTSWITH(c.name, "United States") AND c.code = "US")
 ```
 
 
 ### Example 6: Introduction to JOIN
-In this example we want to find Country having regions with a populationDensity > 50.000.000
+In this example we want to find Country having states with a populationDensity > 50.000.000
 ```java
 public void readData() {
     SqlQuerySpec query = buildQuery(50000000);
@@ -285,10 +284,10 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Define joins
-    CosmosJoinReference regionsJoin = new CosmosJoinReference(countries, "regions", "s");
+    CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
 
     // Build conditions
-    Condition populationDensityCondition = new ConditionBuilder(regionsJoin) // We specify that this condition will be built on join reference
+    Condition populationDensityCondition = new ConditionBuilder(statesJoin) // We specify that this condition will be built on join reference
                         .attribute("populationDensity")
                         .gt(populationDensity);
 
@@ -296,7 +295,7 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .join(regionsJoin)
+            .join(statesJoin)
             .where(populationDensityCondition)
             .buildQuery();
 }
@@ -305,7 +304,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-JOIN s_jref IN c.regions
+JOIN s_jref IN c.states
 WHERE s_jref.populationDensity > 50000000
 ```
 
@@ -325,8 +324,8 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Define joins
-    CosmosJoinReference regionsJoin = new CosmosJoinReference(countries, "regions", "s");
-    CosmosJoinReference citiesJoin = new CosmosJoinReference(regionsJoin, "cities", "c");
+    CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
+    CosmosJoinReference citiesJoin = new CosmosJoinReference(statesJoin, "cities", "c");
 
     // Build conditions
     Condition populationDensityCondition = new ConditionBuilder(citiesJoin) // We specify that this condition will be built on join reference
@@ -337,7 +336,7 @@ public SqlQuerySpec buildQuery(Integer populationDensity) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .join(regionsJoin)
+            .join(statesJoin)
             .join(citiesJoin)
             .where(populationDensityCondition)
             .buildQuery();
@@ -347,7 +346,7 @@ Result
 ```SQL
 SELECT c
 FROM Countries c
-JOIN s_jref IN c.regions
+JOIN s_jref IN c.states
 JOIN c_jref IN s_jref.cities
 WHERE c_jref.populationDensity > 3500000
 ```

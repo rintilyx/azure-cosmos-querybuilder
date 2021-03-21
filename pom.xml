@@ -4,15 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.blackhatd.devtools</groupId>
-    <artifactId>cosmos-query-builder</artifactId>
+    <groupId>com.rintilyx.github</groupId>
+    <artifactId>azure-cosmos-querybuilder</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-
         <junit.version>[4.13.1,)</junit.version>
         <mockito-core.version>3.4.0</mockito-core.version>
-        <lombok.version>1.18.12</lombok.version>
         <azure-cosmos.version>3.7.5</azure-cosmos.version>
     </properties>
 
@@ -23,12 +21,6 @@
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-cosmos</artifactId>
             <version>${azure-cosmos.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
         </dependency>
 
         <dependency>
