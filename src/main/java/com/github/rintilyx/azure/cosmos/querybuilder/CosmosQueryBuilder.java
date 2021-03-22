@@ -93,15 +93,7 @@ public class CosmosQueryBuilder {
                 .replace("${OFFSET}", buildOffset(this.cosmosQueryConfiguration.getOffset()))
                 .replace("${ORDER_BY}", buildOrderBy(this.cosmosQueryConfiguration.getCollection().getAlias(), this.cosmosQueryConfiguration.getOrderBy()));
 
-        if (this.cosmosQueryConfiguration.isExplicitLog()) {
-            String formattedQuery = query.replace("", "");
-            for (SqlParameter sqlParameter : sqlParameters) {
-                formattedQuery = formattedQuery.replace(sqlParameter.name(), sqlParameter.value(Object.class) != null ? sqlParameter.value(Object.class).toString() : "null");
-            }
-            logQuery(formattedQuery);
-        } else {
-            logQuery(query);
-        }
+        logQuery(query);
 
         return new SqlQuerySpec(query, sqlParameters);
     }
@@ -129,9 +121,9 @@ public class CosmosQueryBuilder {
     private static String buildOrderBy(String alias, List<OrderByClause> orderByClauses) {
         return Optional.ofNullable(orderByClauses)
                 .map(clauses -> {
-                    String orderByPattern = alias + ".${PROPERTY} ${CRITERIA}";
+                    String orderByPattern = "${ALIAS}.${PROPERTY} ${CRITERIA}";
                     String sortingString = clauses.stream()
-                            .map(clause -> orderByPattern.replace("${PROPERTY}", clause.getField()).replace("${CRITERIA}", clause.getCriteria().name()))
+                            .map(clause -> orderByPattern.replace("${ALIAS}", clause.getCosmosReference().getAlias()).replace("${PROPERTY}", clause.getAttribute()).replace("${CRITERIA}", clause.getCriteria().name()))
                             .collect(Collectors.joining(","));
                     return StringUtils.isNotBlank(sortingString) ? ("ORDER BY " + sortingString) : StringUtils.EMPTY;
                 })
@@ -172,7 +164,7 @@ public class CosmosQueryBuilder {
     }
 
     private String buildCondition(Condition condition, SqlParameterList sqlParameters) {
-        if (includeInQuery(condition)) {
+        if (isToInclude(condition)) {
             String sqlParamName = getSqlParamName(sqlParameters, condition);
             condition.setSqlParamName(sqlParamName);
             return condition.getComparisonOperator().buildCondition(condition);
@@ -181,7 +173,7 @@ public class CosmosQueryBuilder {
         }
     }
 
-    private boolean includeInQuery(Condition condition) {
+    private boolean isToInclude(Condition condition) {
         return BooleanUtils.isTrue(condition.isIncludedIfNull()) || condition.getValue() != null;
     }
 

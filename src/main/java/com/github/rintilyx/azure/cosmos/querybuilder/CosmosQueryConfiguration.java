@@ -15,7 +15,6 @@ public class CosmosQueryConfiguration {
     private long maxAttempts = 1L;
     private Duration onRetryFixedDelay;
     private SelectionType selectionType = SelectionType.SELECT;
-    private boolean isExplicitLog = false;
     private List<String> fields;
     private CosmosCollection collection;
     private List<CosmosJoinReference> joins;
@@ -120,19 +119,12 @@ public class CosmosQueryConfiguration {
         this.limit = limit;
     }
 
-    public SelectionType getSelectionType() {
+    SelectionType getSelectionType() {
         return selectionType;
     }
 
-    public void setSelectionType(SelectionType selectionType) {
+    void setSelectionType(SelectionType selectionType) {
         this.selectionType = selectionType;
     }
 
-    public boolean isExplicitLog() {
-        return isExplicitLog;
-    }
-
-    public void setExplicitLog(boolean explicitLog) {
-        isExplicitLog = explicitLog;
-    }
 }

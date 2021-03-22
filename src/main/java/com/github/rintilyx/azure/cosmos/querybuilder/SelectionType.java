@@ -8,7 +8,7 @@ enum SelectionType {
     SELECT("SELECT ${FIELDS}"),
     COUNT("SELECT VALUE COUNT(1)");
 
-    private String pattern;
+    private final String pattern;
 
     SelectionType(String pattern) {
         this.pattern = pattern;

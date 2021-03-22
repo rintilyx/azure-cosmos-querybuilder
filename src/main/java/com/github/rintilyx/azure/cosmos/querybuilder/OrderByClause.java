@@ -2,27 +2,31 @@ package com.github.rintilyx.azure.cosmos.querybuilder;
 
 public class OrderByClause {
 
-    private String field;
-    private SortingCriteria criteria;
+    private final CosmosReference cosmosReference;
+    private final String attribute;
+    private final SortingCriteria criteria;
 
-    public OrderByClause(String field, SortingCriteria criteria) {
-        this.field = field;
+    OrderByClause(CosmosReference cosmosReference, String attribute, SortingCriteria criteria) {
+        if (cosmosReference == null) {
+            throw new RuntimeException("Cosmos Reference must be provided in order to build OrderByClause");
+        }
+        if (attribute == null) {
+            throw new RuntimeException("attribute must be provided in order to build OrderByClause");
+        }
+        this.cosmosReference = cosmosReference;
+        this.attribute = attribute;
         this.criteria = criteria;
     }
 
-    public String getField() {
-        return field;
+    CosmosReference getCosmosReference() {
+        return cosmosReference;
     }
 
-    public void setField(String field) {
-        this.field = field;
+    String getAttribute() {
+        return attribute;
     }
 
-    public SortingCriteria getCriteria() {
+    SortingCriteria getCriteria() {
         return criteria;
-    }
-
-    public void setCriteria(SortingCriteria criteria) {
-        this.criteria = criteria;
     }
 }
