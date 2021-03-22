@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 public class CosmosJoinReference extends CosmosReference {
 

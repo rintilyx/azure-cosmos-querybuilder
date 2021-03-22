@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import java.util.ArrayList;
 import java.util.List;

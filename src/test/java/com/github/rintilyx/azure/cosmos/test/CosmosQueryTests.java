@@ -1,8 +1,8 @@
-package com.blackhat.devtools.cosmos.test;
+package com.github.rintilyx.azure.cosmos.test;
 
 import com.azure.data.cosmos.CosmosClient;
 import com.azure.data.cosmos.SqlQuerySpec;
-import com.blackhat.devtools.cosmos.*;
+import com.github.rintilyx.azure.cosmos.querybuilder.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -213,8 +213,7 @@ public class CosmosQueryTests {
 
         Condition condition = new ConditionBuilder(countries)
                 .attribute("states")
-                .arrayContains(state, true)
-                .negated();
+                .arrayContains(state, true);
 
         // Build query
         SqlQuerySpec query = new CosmosQuery()

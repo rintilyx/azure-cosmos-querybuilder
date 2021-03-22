@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import com.azure.data.cosmos.*;
 import org.apache.commons.lang3.BooleanUtils;

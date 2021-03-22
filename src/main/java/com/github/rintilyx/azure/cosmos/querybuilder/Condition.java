@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 public class Condition {
 
@@ -9,7 +9,6 @@ public class Condition {
     private final ComparisonOperator comparisonOperator;
     private final boolean includedIfNull;
     private final Boolean boolExpr;
-    private Boolean isNegated;
 
     Condition(CosmosReference cosmosReference, String attribute, Object value, ComparisonOperator comparisonOperator, boolean includedIfNull, Boolean boolExpr) {
         if (cosmosReference == null)
@@ -59,12 +58,4 @@ public class Condition {
         return this.boolExpr;
     }
 
-    Boolean getNegated() {
-        return this.isNegated;
-    }
-
-    public Condition negated() {
-        this.isNegated = true;
-        return this;
-    }
 }

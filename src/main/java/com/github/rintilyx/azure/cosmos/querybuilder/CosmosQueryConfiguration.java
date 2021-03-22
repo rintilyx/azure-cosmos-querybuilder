@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import com.azure.data.cosmos.CosmosClient;
 import org.slf4j.Logger;

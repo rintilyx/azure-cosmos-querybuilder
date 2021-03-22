@@ -5,7 +5,7 @@
 - You can choose if a condition will be included in query if value is null
 - Build simple or complex expressions
 - single or multiple JOIN support
-- Supported operators: 
+- Supported operators (and all related negated forms):
    - EQUALS
    - GT
    - GTE
@@ -161,7 +161,44 @@ FROM Countries c
 ```
 If a Condition contains null as value it will be removed from query
 
-### Example 4: Combine multiple Conditions
+### Example 4: Include Condition if value is null
+If you need to build dynamic query, excluding null values from condition, you can use .includeIfNull(true/false) attribute provided by ConditionBuilder (default value is false)
+```java
+public void readData() {
+    SqlQuerySpec query = buildQuery(null); // Pass null to method
+
+    cosmosClient.getDatabase("mydatabase")
+        .getContainer("Countries")
+        .queryItems(query);
+}
+
+public SqlQuerySpec buildQuery(String name) {
+    // Define collection
+    CosmosCollection countries = new CosmosCollection("Countries");
+
+    // Build condition
+    Condition United StatesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
+                    .attribute("name")
+                    .includeIfNull(true) // if name is null, the condition will be removed from query
+                    .equalsTo(name);
+
+    // Build query
+    return new CosmosQuery()
+            .select()
+            .from(countries)
+            .where(United StatesCondition)
+            .buildQuery();
+}
+```
+Result
+```SQL
+SELECT c
+FROM Countries c
+WHERE c.name = null
+```
+If a Condition contains null as value it will be removed from query
+
+### Example 5: Combine multiple Conditions
 Search Countries having "United States" as name and "US" as code.
 ```java
 public void readData() {
@@ -201,7 +238,7 @@ WHERE c.name = "United States" AND c.code = "US"
 ```
 
 
-### Example 5: Introduction to Expression (multiple conditions binding)
+### Example 6: Introduction to Expression (multiple conditions binding)
 If you want to check a tuple of conditions with another one, you can use the Expressions!
 
 #### How to build an Expression
@@ -268,7 +305,7 @@ WHERE c.id = 1 OR (STARTSWITH(c.name, "United States") AND c.code = "US")
 ```
 
 
-### Example 6: Introduction to JOIN
+### Example 7: Introduction to JOIN
 In this example we want to find Country having states with a populationDensity > 50.000.000
 ```java
 public void readData() {
@@ -308,7 +345,7 @@ JOIN s_jref IN c.states
 WHERE s_jref.populationDensity > 50000000
 ```
 
-### Example 7: Usage of multiple JOINS
+### Example 8: Usage of multiple JOINS
 In this example we want to search countries having a cities with populationDensity > 3.500.000
 ```java
 public void readData() {
@@ -351,12 +388,17 @@ JOIN c_jref IN s_jref.cities
 WHERE c_jref.populationDensity > 3500000
 ```
 
-### Example 8: Select partial fields
+### Example 9: Select partial fields
 ```java
     List<String> fields = Arrays.asList("name","code");
     // Build query
     return new CosmosQuery()
             .select(fields)
+            .from(countries)
+            .buildQuery();
+    // OR ...
+    return new CosmosQuery()
+            .select("name", "code")
             .from(countries)
             .buildQuery();
 }

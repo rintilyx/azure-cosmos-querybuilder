@@ -1,4 +1,4 @@
-package com.blackhat.devtools.cosmos;
+package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,7 @@ public class ConditionBuilder {
     }
 
     /**
-     * Create a condition using EQUALS operator
+     * Create a condition using = operator
      * <p>
      * Final result will be: c.country = "Europe"
      * <p>
@@ -49,6 +49,16 @@ public class ConditionBuilder {
     public Condition equalsTo(Object value) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.EQUALS;
+        return buildCondition();
+    }
+
+    /**
+     * This is the negated expression of EQUALS
+     *
+     */
+    public Condition notEqualsTo(Object value) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_EQUALS;
         return buildCondition();
     }
 
@@ -69,6 +79,16 @@ public class ConditionBuilder {
     }
 
     /**
+     * This is the negated expression of LIKE
+     *
+     */
+    public Condition notLike(String value) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_LIKE;
+        return this.buildCondition();
+    }
+
+    /**
      * Create a condition using ARRAY_CONTAINS operator
      * <p>
      * Final result will be: ARRAY_CONTAINS(c.states, {"name":"Italy"})
@@ -81,6 +101,17 @@ public class ConditionBuilder {
     public Condition arrayContains(Object value) {
         return this.arrayContains(value, null);
     }
+
+    /**
+     * This is the negated expression of ARRAY_CONTAINS
+     *
+     * @param value indicates the value to be checked using NOT ARRAY_CONTAINS operator
+     * @return a Condition properly built
+     */
+    public Condition notArrayContains(Object value) {
+        return this.notArrayContains(value, null);
+    }
+
 
     /**
      * Create a condition using ARRAY_CONTAINS operator
@@ -98,6 +129,19 @@ public class ConditionBuilder {
     public Condition arrayContains(Object value, Boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.ARRAY_CONTAINS;
+        this.boolExpr = boolExpr;
+        return buildCondition();
+    }
+
+    /**
+     * This is the negated expression of ARRAY_CONTAINS
+     *
+     * @param value indicates the value to be checked using NOT ARRAY_CONTAINS operator
+     * @return a Condition properly built
+     */
+    public Condition notArrayContains(Object value, Boolean boolExpr) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_ARRAY_CONTAINS;
         this.boolExpr = boolExpr;
         return buildCondition();
     }
@@ -121,6 +165,18 @@ public class ConditionBuilder {
     }
 
     /**
+     * This is the negated expression of IN
+     *
+     * @param values indicates the values to be included in IN operator
+     * @return a Condition properly built
+     */
+    public Condition notIn(List<Object> values) {
+        this.value = values;
+        this.comparisonOperator = ComparisonOperator.NOT_IN;
+        return buildCondition();
+    }
+
+    /**
      * Create a condition using IN operator
      * <p>
      * Final result will be: IN ("A", "B", "C")
@@ -135,6 +191,15 @@ public class ConditionBuilder {
         return this.in(Arrays.asList(values));
     }
 
+    /**
+     * This is the negated expression of IN
+     *
+     * @param values indicates the values to be included in IN operator
+     * @return a Condition properly built
+     */
+    public Condition notIn(Object... values) {
+        return this.notIn(Arrays.asList(values));
+    }
 
     /**
      * Create a condition using CONTAINS operator
@@ -148,6 +213,16 @@ public class ConditionBuilder {
      */
     public Condition contains(String value) {
         return this.contains(value, null);
+    }
+
+    /**
+     * This is the negated expression of CONTAINS
+     *
+     * @param value indicates the value to be checked using CONTAINS operator
+     * @return a Condition properly built
+     */
+    public Condition notContains(String value) {
+        return this.notContains(value, null);
     }
 
     /**
@@ -168,6 +243,20 @@ public class ConditionBuilder {
         return buildCondition();
     }
 
+    /**
+     * This is the negated expression of CONTAINS
+     *
+     * @param value    indicates the value to be checked using CONTAINS operator
+     * @param boolExpr Optional value for ignoring case. When set to true, CONTAINS will do a case-insensitive search. When unspecified, this value is false.
+     * @return a Condition properly built
+     */
+    public Condition notContains(String value, Boolean boolExpr) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_CONTAINS;
+        this.boolExpr = boolExpr;
+        return buildCondition();
+    }
+
 
     /**
      * Create a condition using STARTSWITH operator
@@ -181,6 +270,16 @@ public class ConditionBuilder {
      */
     public Condition startsWith(String value) {
         return this.startsWith(value, null);
+    }
+
+    /**
+     * This is the negated expression of STARTSWITH
+     *
+     * @param value indicates the value to be checked using STARTSWITH operator
+     * @return a Condition properly built
+     */
+    public Condition notStartsWith(String value) {
+        return this.notStartsWith(value, null);
     }
 
     /**
@@ -202,6 +301,20 @@ public class ConditionBuilder {
     }
 
     /**
+     * This is the negated expression of STARTSWITH
+     *
+     * @param value    indicates the value to be checked using STARTSWITH operator
+     * @param boolExpr Optional value for ignoring case. When set to true, STARTSWITH will do a case-insensitive search. When unspecified, this value is false.
+     * @return a Condition properly built
+     */
+    public Condition notStartsWith(String value, Boolean boolExpr) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_STARTS_WITH;
+        this.boolExpr = boolExpr;
+        return buildCondition();
+    }
+
+    /**
      * Create a condition using ENDSWITH operator
      * <p>
      * Final result will be: ENDSWITH(c.name, "ope")
@@ -212,10 +325,20 @@ public class ConditionBuilder {
      * @return a Condition properly built
      */
     public Condition endsWith(String value) {
-        this.value = value;
-        this.comparisonOperator = ComparisonOperator.ENDS_WITH;
-        return buildCondition();
+        return this.endsWith(value, null);
     }
+
+
+    /**
+     * This is the negated expression of ENDSWITH
+     *
+     * @param value indicates the value to be checked using ENDSWITH operator
+     * @return a Condition properly built
+     */
+    public Condition notEndsWith(String value) {
+        return this.notEndsWith(value, null);
+    }
+
 
     /**
      * Create a condition using ENDSWITH operator
@@ -228,12 +351,28 @@ public class ConditionBuilder {
      * @param boolExpr Optional value for ignoring case. When set to true, ENDSWITH will do a case-insensitive search. When unspecified, this value is false.
      * @return a Condition properly built
      */
-    public Condition endsWith(String value, boolean boolExpr) {
+    public Condition endsWith(String value, Boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.ENDS_WITH;
         this.boolExpr = boolExpr;
         return buildCondition();
     }
+
+
+    /**
+     * This is the negated expression of ENDSWITH
+     *
+     * @param value    indicates the value to be checked using ENDSWITH operator
+     * @param boolExpr Optional value for ignoring case. When set to true, ENDSWITH will do a case-insensitive search. When unspecified, this value is false.
+     * @return a Condition properly built
+     */
+    public Condition notEndsWith(String value, Boolean boolExpr) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_ENDS_WITH;
+        this.boolExpr = boolExpr;
+        return buildCondition();
+    }
+
 
     /**
      * Create a condition using STRINGEQUALS operator
@@ -246,9 +385,17 @@ public class ConditionBuilder {
      * @return a Condition properly built
      */
     public Condition stringEquals(String value) {
-        this.value = value;
-        this.comparisonOperator = ComparisonOperator.STRING_EQUALS;
-        return buildCondition();
+        return this.stringEquals(value, null);
+    }
+
+    /**
+     * This is the negated expression of STRINGEQUALS
+     *
+     * @param value indicates the value to be checked using STRINGEQUALS operator
+     * @return a Condition properly built
+     */
+    public Condition notStringEquals(String value) {
+        return this.notStringEquals(value, null);
     }
 
     /**
@@ -262,12 +409,28 @@ public class ConditionBuilder {
      * @param boolExpr Optional value for ignoring case. When set to true, StringEquals will do a case-insensitive search. When unspecified, this value is false.
      * @return a Condition properly built
      */
-    public Condition stringEquals(String value, boolean boolExpr) {
+    public Condition stringEquals(String value, Boolean boolExpr) {
         this.value = value;
         this.comparisonOperator = ComparisonOperator.STRING_EQUALS;
         this.boolExpr = boolExpr;
         return buildCondition();
     }
+
+
+    /**
+     * This is the negated expression of STRINGEQUALS
+     *
+     * @param value    indicates the value to be checked using StringEquals operator
+     * @param boolExpr Optional value for ignoring case. When set to true, StringEquals will do a case-insensitive search. When unspecified, this value is false.
+     * @return a Condition properly built
+     */
+    public Condition notStringEquals(String value, Boolean boolExpr) {
+        this.value = value;
+        this.comparisonOperator = ComparisonOperator.NOT_STRING_EQUALS;
+        this.boolExpr = boolExpr;
+        return buildCondition();
+    }
+
 
     /**
      * Create a condition using GREATER THAN EQUALS operator
@@ -348,6 +511,18 @@ public class ConditionBuilder {
     }
 
 
+
+    /**
+     * This is the negated expression of IS_ARRAY
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotArray() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_ARRAY;
+        return buildCondition();
+    }
+
+
     /**
      * Create a condition using IS_BOOL operator
      * <p>
@@ -362,6 +537,21 @@ public class ConditionBuilder {
         return buildCondition();
     }
 
+
+
+    /**
+     *
+     * This is the negated expression of IS_BOOL
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotBool() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_BOOL;
+        return buildCondition();
+    }
+
+
+
     /**
      * Create a condition using IS_DEFINED operator
      * <p>
@@ -373,6 +563,16 @@ public class ConditionBuilder {
      */
     public Condition isDefined() {
         this.comparisonOperator = ComparisonOperator.IS_DEFINED;
+        return buildCondition();
+    }
+
+    /**
+     * This is the negated expression of IS_DEFINED
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotDefined() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_DEFINED;
         return buildCondition();
     }
 
@@ -391,6 +591,17 @@ public class ConditionBuilder {
         return buildCondition();
     }
 
+
+    /**
+     * This is the negated expression of IS_NULL
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotNull() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_NULL;
+        return buildCondition();
+    }
+
     /**
      * Create a condition using IS_NUMBER operator
      * <p>
@@ -405,6 +616,18 @@ public class ConditionBuilder {
         return buildCondition();
     }
 
+
+    /**
+     * This is the negated expression of IS_NUMBER
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotNumber() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_NUMBER;
+        return buildCondition();
+    }
+
+
     /**
      * Create a condition using IS_OBJECT operator
      * <p>
@@ -418,6 +641,17 @@ public class ConditionBuilder {
         this.comparisonOperator = ComparisonOperator.IS_OBJECT;
         return buildCondition();
     }
+
+    /**
+     * This is the negated expression of IS_OBJECT
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotObject() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_OBJECT;
+        return buildCondition();
+    }
+
 
     /**
      * Create a condition using IS_PRIMITIVE operator
@@ -435,6 +669,17 @@ public class ConditionBuilder {
 
 
     /**
+     * This is the negated expression of IS_PRIMITIVE
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotPrimitive() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_PRIMITIVE;
+        return buildCondition();
+    }
+
+
+    /**
      * Create a condition using IS_STRING operator
      * <p>
      * Final result will be: IS_STRING(c.name)
@@ -447,6 +692,18 @@ public class ConditionBuilder {
         this.comparisonOperator = ComparisonOperator.IS_STRING;
         return buildCondition();
     }
+
+
+    /**
+     * This is the negated expression of IS_STRING
+     *
+     * @return a Condition properly built
+     */
+    public Condition isNotString() {
+        this.comparisonOperator = ComparisonOperator.NOT_IS_STRING;
+        return buildCondition();
+    }
+
 
     private Condition buildCondition() {
         return new Condition(this.cosmosReference, this.attribute, this.value, this.comparisonOperator, this.includeIfNullIndicator, this.boolExpr);
