@@ -10,6 +10,17 @@ public class OrderByClauseBuilder {
         this.cosmosReference = cosmosReference;
     }
 
+    public OrderByClauseBuilder(CosmosReference cosmosReference, String attribute) {
+        this.cosmosReference = cosmosReference;
+        this.attribute = attribute;
+    }
+
+    public OrderByClauseBuilder(CosmosReference cosmosReference, String attribute, SortingCriteria criteria) {
+        this.cosmosReference = cosmosReference;
+        this.attribute = attribute;
+        this.criteria = criteria;
+    }
+
     public OrderByClauseBuilder attribute(String attribute) {
         this.attribute = attribute;
         return this;

@@ -1,6 +1,7 @@
 package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import com.azure.data.cosmos.CosmosClient;
+import com.azure.data.cosmos.sync.CosmosSyncClient;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -10,6 +11,7 @@ import java.util.List;
 public class CosmosQueryConfiguration {
 
     private CosmosClient cosmosClient;
+    private CosmosSyncClient cosmosSyncClient;
     private String database;
     private Logger logger;
     private long maxAttempts = 1L;
@@ -29,6 +31,14 @@ public class CosmosQueryConfiguration {
 
     public void setCosmosClient(CosmosClient cosmosClient) {
         this.cosmosClient = cosmosClient;
+    }
+
+    public CosmosSyncClient getCosmosSyncClient() {
+        return cosmosSyncClient;
+    }
+
+    public void setCosmosSyncClient(CosmosSyncClient cosmosSyncClient) {
+        this.cosmosSyncClient = cosmosSyncClient;
     }
 
     public String getDatabase() {

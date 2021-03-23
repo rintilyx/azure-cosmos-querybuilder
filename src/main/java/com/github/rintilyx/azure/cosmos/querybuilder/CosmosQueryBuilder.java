@@ -1,17 +1,20 @@
 package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import com.azure.data.cosmos.*;
+import com.github.rintilyx.azure.cosmos.data.Country;
+import com.github.rintilyx.azure.cosmos.data.ResultWrapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,56 +28,131 @@ public class CosmosQueryBuilder {
 
     CosmosQueryBuilder(CosmosQueryConfiguration cosmosQueryConfiguration) {
         if (cosmosQueryConfiguration == null || cosmosQueryConfiguration.getCollection() == null)
-            throw new RuntimeException("CosmosQueryConfiguration or collection cannot be null");
+            throw new CosmosQueryBuilderException("CosmosQueryConfiguration or collection cannot be null");
         this.cosmosQueryConfiguration = cosmosQueryConfiguration;
     }
 
-    Flux<FeedResponse<CosmosItemProperties>> queryItems(FeedOptions feedOptions) {
+    Flux<FeedResponse<CosmosItemProperties>> queryItems() {
         if (this.cosmosQueryConfiguration.getCosmosClient() == null)
-            throw new RuntimeException("CosmosClient must be provided");
+            throw new CosmosQueryBuilderException("CosmosClient must be provided");
         if (this.cosmosQueryConfiguration.getDatabase() == null)
-            throw new RuntimeException("Database must be provided");
+            throw new CosmosQueryBuilderException("Database must be provided");
 
         return Flux.just(this.cosmosQueryConfiguration.getCosmosClient())
                 .map(cosmosClient -> cosmosClient.getDatabase(this.cosmosQueryConfiguration.getDatabase()))
                 .map(cosmosDatabase -> cosmosDatabase.getContainer(this.cosmosQueryConfiguration.getCollection().getName()))
-                .flatMap(cosmosContainer -> cosmosContainer.queryItems(this.buildQuery(), feedOptions));
+                .flatMap(cosmosContainer ->
+                        cosmosContainer.queryItems(this.buildQuery())
+                                .retryWhen(Retry.fixedDelay(this.cosmosQueryConfiguration.getMaxAttempts(), this.cosmosQueryConfiguration.getOnRetryFixedDelay()))
+                );
     }
+
+    Flux<FeedResponse<CosmosItemProperties>> queryItems(FeedOptions feedOptions) {
+        if (this.cosmosQueryConfiguration.getCosmosClient() == null)
+            throw new CosmosQueryBuilderException("CosmosClient must be provided");
+        if (this.cosmosQueryConfiguration.getDatabase() == null)
+            throw new CosmosQueryBuilderException("Database must be provided");
+
+        return Flux.just(this.cosmosQueryConfiguration.getCosmosClient())
+                .map(cosmosClient -> cosmosClient.getDatabase(this.cosmosQueryConfiguration.getDatabase()))
+                .map(cosmosDatabase -> cosmosDatabase.getContainer(this.cosmosQueryConfiguration.getCollection().getName()))
+                .flatMap(cosmosContainer ->
+                        cosmosContainer.queryItems(this.buildQuery(), feedOptions)
+                                .retryWhen(Retry.fixedDelay(this.cosmosQueryConfiguration.getMaxAttempts(), this.cosmosQueryConfiguration.getOnRetryFixedDelay()))
+                );
+    }
+
+    List<FeedResponse<CosmosItemProperties>> queryItemsSync(FeedOptions feedOptions) {
+        if (this.cosmosQueryConfiguration.getCosmosSyncClient() != null) {
+            List<FeedResponse<CosmosItemProperties>> result = new ArrayList<>();
+            performQueryItemsSync(feedOptions)
+                    .forEachRemaining(result::add);
+            return result;
+        } else {
+            return queryItems().toStream(1).collect(Collectors.toList());
+        }
+    }
+
 
     <T> Flux<T> queryItems(FeedOptions feedOptions, Class<T> targetClass) {
         return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
-                .flatMap(cosmosItemProperties -> applyConvert(cosmosItemProperties, (c) -> {
-                            try {
-                                return c.getObject(targetClass);
-                            } catch (IOException ex) {
-                                if (this.cosmosQueryConfiguration.getLogger() != null)
-                                    this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to Object is failed: {}", ex.getMessage());
-                                else
-                                    LOGGER.warn("Conversion JSON to Object is failed: {}", ex.getMessage());
-                                return null;
-                            }
-                        })
-                );
+                .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties));
     }
 
-    <T> Flux<T> queryItems(FeedOptions feedOptions, Function<CosmosItemProperties, T> customConverter) {
+    <T> List<T> queryItemsSync(FeedOptions feedOptions, Class<T> targetClass) {
+        if (this.cosmosQueryConfiguration.getCosmosSyncClient() != null) {
+            List<T> result = new ArrayList<>();
+            performQueryItemsSync(feedOptions)
+                    .forEachRemaining(feedResponse -> {
+                        feedResponse.results()
+                                .stream()
+                                .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties))
+                                .forEach(result::add);
+                    });
+            return result;
+        } else {
+            return this.queryItems(feedOptions)
+                    .flatMapIterable(FeedResponse::results)
+                    .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties))
+                    .toStream(1)
+                    .collect(Collectors.toList());
+        }
+    }
+
+
+    <T> Flux<T> queryItems(FeedOptions feedOptions, CosmosItemPropertiesConverter<T> customConverter) {
         return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
-                .flatMap(cosmosItemProperties -> applyConvert(cosmosItemProperties, customConverter));
+                .map(customConverter::convert);
     }
 
-    private <T> Flux<T> applyConvert(CosmosItemProperties cosmosItemProperties, Function<CosmosItemProperties, T> converter) {
-        return Flux.create(sink -> {
-            try {
-                T t = converter.apply(cosmosItemProperties);
-                if (t != null)
-                    sink.next(t);
-                sink.complete();
-            } catch (Exception e) {
-                sink.error(e);
+    <T> List<T> queryItemsSync(FeedOptions feedOptions, CosmosItemPropertiesConverter<T> customConverter) {
+        if (this.cosmosQueryConfiguration.getCosmosSyncClient() != null) {
+            List<T> result = new ArrayList<>();
+            performQueryItemsSync(feedOptions)
+                    .forEachRemaining(feedResponse -> {
+                        feedResponse.results()
+                                .stream()
+                                .map(customConverter::convert)
+                                .forEach(result::add);
+                    });
+            return result;
+        } else {
+            return this.queryItems(feedOptions)
+                    .flatMapIterable(FeedResponse::results)
+                    .map(customConverter::convert)
+                    .toStream(1)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    <T> Mono<Long> countItems(FeedOptions feedOptions) {
+        return this.queryItems(feedOptions)
+                .flatMapIterable(FeedResponse::results)
+                .map(cosmosItemProperties -> cosmosItemProperties.get("_aggregate"))
+                .map(i -> Long.parseLong(String.valueOf(i)))
+                .reduce(Long::sum);
+    }
+
+    Long countItemsSync(FeedOptions feedOptions) {
+        if (this.cosmosQueryConfiguration.getCosmosSyncClient() != null) {
+            long result = 0L;
+            Iterator<FeedResponse<CosmosItemProperties>> feedResponseIterator = performQueryItemsSync(feedOptions);
+            while (feedResponseIterator.hasNext()) {
+                FeedResponse<CosmosItemProperties> feedResponse = feedResponseIterator.next();
+                for (CosmosItemProperties cosmosItemProperties : feedResponse.results()) {
+                    result += Long.parseLong((String) cosmosItemProperties.get("_aggregate"));
+                }
             }
-        });
+            return result;
+        } else {
+            return this.countItems(feedOptions)
+                    .flux()
+                    .toStream(1)
+                    .reduce(Long::sum)
+                    .orElse(0L);
+        }
     }
 
 
@@ -91,11 +169,38 @@ public class CosmosQueryBuilder {
                 .replace("${WHERE}", expressions.isEmpty() ? "" : "WHERE " + expressions)
                 .replace("${LIMIT}", buildLimit(this.cosmosQueryConfiguration.getLimit()))
                 .replace("${OFFSET}", buildOffset(this.cosmosQueryConfiguration.getOffset()))
-                .replace("${ORDER_BY}", buildOrderBy(this.cosmosQueryConfiguration.getCollection().getAlias(), this.cosmosQueryConfiguration.getOrderBy()));
+                .replace("${ORDER_BY}", buildOrderBy(this.cosmosQueryConfiguration.getOrderBy()));
 
         logQuery(query);
 
         return new SqlQuerySpec(query, sqlParameters);
+    }
+
+
+    private Iterator<FeedResponse<CosmosItemProperties>> performQueryItemsSync(FeedOptions feedOptions) {
+        if (this.cosmosQueryConfiguration.getCosmosClient() == null || this.cosmosQueryConfiguration.getCosmosSyncClient() == null)
+            throw new CosmosQueryBuilderException("CosmosClient or CosmosSyncClient must be provided");
+        return this.cosmosQueryConfiguration.getCosmosSyncClient()
+                .getDatabase(this.cosmosQueryConfiguration.getDatabase())
+                .getContainer(this.cosmosQueryConfiguration.getCollection().getName())
+                .queryItems(this.buildQuery(), feedOptions);
+    }
+
+    public <T> CosmosItemPropertiesConverter<T> getDefaultConverter(Class<T> targetClass) {
+        return (c) -> {
+            try {
+                Type resultWrapperType = new TypeToken<ResultWrapper<Country>>() {
+                }.getType();
+                ResultWrapper<T> wrapper = new Gson().fromJson(c.toJson(), resultWrapperType);
+                return wrapper.getC();
+            } catch (Exception ex) {
+                if (CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger() != null)
+                    CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to {} is failed due to: {}", targetClass.getName(), ex.getMessage());
+                else
+                    LOGGER.warn("Conversion JSON to {} is failed due to: {}", targetClass.getName(), ex.getMessage());
+                return null;
+            }
+        };
     }
 
     private void logQuery(String query) {
@@ -118,12 +223,12 @@ public class CosmosQueryBuilder {
         return limit != null ? ("LIMIT " + limit.toString()) : StringUtils.EMPTY;
     }
 
-    private static String buildOrderBy(String alias, List<OrderByClause> orderByClauses) {
+    private static String buildOrderBy(List<OrderByClause> orderByClauses) {
         return Optional.ofNullable(orderByClauses)
                 .map(clauses -> {
-                    String orderByPattern = "${ALIAS}.${PROPERTY} ${CRITERIA}";
+                    String orderByPattern = "${ALIAS}.${PROPERTY}${CRITERIA}";
                     String sortingString = clauses.stream()
-                            .map(clause -> orderByPattern.replace("${ALIAS}", clause.getCosmosReference().getAlias()).replace("${PROPERTY}", clause.getAttribute()).replace("${CRITERIA}", clause.getCriteria().name()))
+                            .map(clause -> orderByPattern.replace("${ALIAS}", clause.getCosmosReference().getAlias()).replace("${PROPERTY}", clause.getAttribute()).replace("${CRITERIA}", clause.getCriteria() != null ? " " + clause.getCriteria().name() : ""))
                             .collect(Collectors.joining(","));
                     return StringUtils.isNotBlank(sortingString) ? ("ORDER BY " + sortingString) : StringUtils.EMPTY;
                 })

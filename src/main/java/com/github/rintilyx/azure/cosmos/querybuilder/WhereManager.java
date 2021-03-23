@@ -1,6 +1,11 @@
 package com.github.rintilyx.azure.cosmos.querybuilder;
 
+import com.azure.data.cosmos.CosmosItemProperties;
+import com.azure.data.cosmos.FeedOptions;
+import com.azure.data.cosmos.FeedResponse;
 import com.azure.data.cosmos.SqlQuerySpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,8 +72,13 @@ public class WhereManager {
     }
 
 
-    public WhereManager orderBy(OrderByClause ...orderByClauses) {
+    public WhereManager orderBy(OrderByClause... orderByClauses) {
         this.orderBy = Arrays.asList(orderByClauses);
+        return this;
+    }
+
+    public WhereManager orderBy(List<OrderByClause> orderByClauses) {
+        this.orderBy = orderByClauses;
         return this;
     }
 
@@ -79,10 +89,59 @@ public class WhereManager {
         return new OffsetManager(this.cosmosQueryConfiguration);
     }
 
-    public SqlQuerySpec buildQuery() {
+    private void setInternalExpressionList() {
         this.cosmosQueryConfiguration.setInternalExpressionList(this.internalExpressionList);
+    }
+
+    public SqlQuerySpec buildQuery() {
+        setInternalExpressionList();
         return new CosmosQueryBuilder(this.cosmosQueryConfiguration)
                 .buildQuery();
+    }
+
+    public Flux<FeedResponse<CosmosItemProperties>> queryItems() {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItems();
+    }
+
+    public Flux<FeedResponse<CosmosItemProperties>> queryItems(FeedOptions feedOptions) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItems(feedOptions);
+    }
+
+    public List<FeedResponse<CosmosItemProperties>> queryItemsSync(FeedOptions feedOptions) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItemsSync(feedOptions);
+    }
+
+    public <T> Flux<T> queryItems(FeedOptions feedOptions, Class<T> targetClass) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItems(feedOptions, targetClass);
+    }
+
+    public <T> List<T> queryItemsSync(FeedOptions feedOptions, Class<T> targetClass) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItemsSync(feedOptions, targetClass);
+    }
+
+    public <T> Flux<T> queryItems(FeedOptions feedOptions, CosmosItemPropertiesConverter<T> customConverter) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItems(feedOptions, customConverter);
+    }
+
+    public <T> List<T> queryItemsSync(FeedOptions feedOptions, CosmosItemPropertiesConverter<T> customConverter) {
+        setInternalExpressionList();
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).queryItemsSync(feedOptions, customConverter);
+    }
+
+    public Mono<Long> countItems(FeedOptions feedOptions) {
+        this.cosmosQueryConfiguration.setSelectionType(SelectionType.COUNT);
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).countItems(feedOptions);
+    }
+
+    public Long countItemsSync(FeedOptions feedOptions) {
+        this.cosmosQueryConfiguration.setSelectionType(SelectionType.COUNT);
+        return new CosmosQueryBuilder(this.cosmosQueryConfiguration).countItemsSync(feedOptions);
     }
 
 }

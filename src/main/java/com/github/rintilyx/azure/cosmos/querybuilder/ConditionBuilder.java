@@ -9,19 +9,15 @@ import java.util.List;
 public class ConditionBuilder {
 
     private final CosmosReference cosmosReference;
-    private String attribute;
+    private final String attribute;
     private Object value;
     private ComparisonOperator comparisonOperator;
     private Boolean includeIfNullIndicator = false;
     private Boolean boolExpr;
 
-    public ConditionBuilder(CosmosReference cosmosReference) {
+    public ConditionBuilder(CosmosReference cosmosReference, String attribute) {
         this.cosmosReference = cosmosReference;
-    }
-
-    public ConditionBuilder attribute(String attribute) {
         this.attribute = attribute;
-        return this;
     }
 
     /**
@@ -31,10 +27,12 @@ public class ConditionBuilder {
      * @param includeIfNullIndicator indicates if condition must be/not be included in query if value is null
      * @return this class
      */
-    public ConditionBuilder includeIfNull(boolean includeIfNullIndicator) {
+    public ConditionBuilder(CosmosReference cosmosReference, String attribute, Boolean includeIfNullIndicator) {
+        this.cosmosReference = cosmosReference;
+        this.attribute = attribute;
         this.includeIfNullIndicator = includeIfNullIndicator;
-        return this;
     }
+
 
     /**
      * Create a condition using = operator

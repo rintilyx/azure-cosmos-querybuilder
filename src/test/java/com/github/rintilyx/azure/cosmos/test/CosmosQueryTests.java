@@ -37,8 +37,7 @@ public class CosmosQueryTests {
         CosmosCollection countries = new CosmosCollection("Countries");
 
         // Build condition
-        Condition europeCondition = new ConditionBuilder(countries)
-                .attribute("name")
+        Condition europeCondition = new ConditionBuilder(countries, "name")
                 .equalsTo("Europe");
 
         // Build query
@@ -56,9 +55,7 @@ public class CosmosQueryTests {
         CosmosCollection countries = new CosmosCollection("Countries");
 
         // Build condition
-        Condition europeCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
-                .attribute("name")
-                .includeIfNull(false) // if name is null, the condition will be removed from query
+        Condition europeCondition = new ConditionBuilder(countries, "name") // This condition will be built using countries collection reference
                 .equalsTo(null);
 
         SqlQuerySpec query = new CosmosQuery()
@@ -76,11 +73,9 @@ public class CosmosQueryTests {
         CosmosCollection countries = new CosmosCollection("Countries");
 
         // Build condition
-        Condition nameCondition = new ConditionBuilder(countries)
-                .attribute("name")
+        Condition nameCondition = new ConditionBuilder(countries, "name")
                 .equalsTo("Europe");
-        Condition codeCondition = new ConditionBuilder(countries)
-                .attribute("code")
+        Condition codeCondition = new ConditionBuilder(countries, "code")
                 .equalsTo("EU");
 
         // Build query
@@ -100,14 +95,11 @@ public class CosmosQueryTests {
         CosmosCollection countries = new CosmosCollection("Countries");
 
         // Build conditions
-        Condition idCondition = new ConditionBuilder(countries)
-                .attribute("id")
+        Condition idCondition = new ConditionBuilder(countries, "id")
                 .equalsTo(1);
-        Condition nameCondition = new ConditionBuilder(countries)
-                .attribute("name")
+        Condition nameCondition = new ConditionBuilder(countries, "name")
                 .startsWith("Europe");
-        Condition codeCondition = new ConditionBuilder(countries)
-                .attribute("code")
+        Condition codeCondition = new ConditionBuilder(countries, "code")
                 .equalsTo("EU");
 
         // Build expressions
@@ -133,8 +125,7 @@ public class CosmosQueryTests {
         CosmosJoinReference statesJoin = new CosmosJoinReference(countries, "states", "s");
 
         // Build conditions
-        Condition populationDensityCondition = new ConditionBuilder(statesJoin) // We specify that this condition will be built on join reference
-                .attribute("populationDensity")
+        Condition populationDensityCondition = new ConditionBuilder(statesJoin, "populationDensity") // We specify that this condition will be built on join reference
                 .equalsTo(50000000);
 
         // Build query
@@ -158,8 +149,7 @@ public class CosmosQueryTests {
         CosmosJoinReference citiesJoin = new CosmosJoinReference(statesJoin, "cities", "c");
 
         // Build conditions
-        Condition populationDensityCondition = new ConditionBuilder(citiesJoin) // We specify that this condition will be built on join reference
-                .attribute("populationDensity")
+        Condition populationDensityCondition = new ConditionBuilder(citiesJoin, "populationDensity") // We specify that this condition will be built on join reference
                 .equalsTo(3500000);
 
         // Build query
@@ -196,7 +186,7 @@ public class CosmosQueryTests {
 
         // Build query
         SqlQuerySpec query = new CosmosQuery()
-                .count()
+                .select()
                 .from(countries)
                 .buildQuery();
 
@@ -211,13 +201,12 @@ public class CosmosQueryTests {
         State state = new State();
         state.setName("Europe");
 
-        Condition condition = new ConditionBuilder(countries)
-                .attribute("states")
+        Condition condition = new ConditionBuilder(countries, "states")
                 .arrayContains(state, true);
 
         // Build query
         SqlQuerySpec query = new CosmosQuery()
-                .count()
+                .select()
                 .from(countries)
                 .where(condition)
                 .buildQuery();
@@ -233,13 +222,12 @@ public class CosmosQueryTests {
         State state = new State();
         state.setName("Europe");
 
-        Condition condition = new ConditionBuilder(countries)
-                .attribute("states")
+        Condition condition = new ConditionBuilder(countries, "states")
                 .arrayContains(state, true);
 
         // Build query
         SqlQuerySpec query = new CosmosQuery()
-                .count()
+                .select()
                 .from(countries)
                 .where(condition)
                 .buildQuery();

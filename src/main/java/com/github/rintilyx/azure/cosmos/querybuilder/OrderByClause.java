@@ -8,10 +8,10 @@ public class OrderByClause {
 
     OrderByClause(CosmosReference cosmosReference, String attribute, SortingCriteria criteria) {
         if (cosmosReference == null) {
-            throw new RuntimeException("Cosmos Reference must be provided in order to build OrderByClause");
+            throw new CosmosQueryBuilderException("Cosmos Reference must be provided in order to build OrderByClause");
         }
         if (attribute == null) {
-            throw new RuntimeException("attribute must be provided in order to build OrderByClause");
+            throw new CosmosQueryBuilderException("attribute must be provided in order to build OrderByClause");
         }
         this.cosmosReference = cosmosReference;
         this.attribute = attribute;

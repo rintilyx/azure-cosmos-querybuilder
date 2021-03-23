@@ -22,11 +22,6 @@ public class CosmosQuery {
         return new SelectManager(this.cosmosQueryConfiguration);
     }
 
-    public SelectManager count() {
-        this.cosmosQueryConfiguration.setSelectionType(SelectionType.COUNT);
-        return new SelectManager(this.cosmosQueryConfiguration);
-    }
-
     public SelectManager select(List<String> fields) {
         this.cosmosQueryConfiguration.setSelectionType(SelectionType.SELECT);
         this.cosmosQueryConfiguration.setFields(fields);
