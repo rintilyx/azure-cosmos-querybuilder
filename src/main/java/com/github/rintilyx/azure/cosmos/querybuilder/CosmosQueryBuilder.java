@@ -1,7 +1,6 @@
 package com.github.rintilyx.azure.cosmos.querybuilder;
 
 import com.azure.data.cosmos.*;
-import com.github.rintilyx.azure.cosmos.data.ResultWrapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.BooleanUtils;
@@ -188,7 +187,7 @@ public class CosmosQueryBuilder {
     public <T> CosmosItemPropertiesConverter<T> getDefaultConverter(Class<T> targetClass) {
         return (c) -> {
             try {
-                Type resultWrapperType = new TypeToken<ResultWrapper<T>>() {
+                Type resultWrapperType = new TypeToken<ResultWrapper<?>>() {
                 }.getType();
                 ResultWrapper<T> wrapper = new Gson().fromJson(c.toJson(), resultWrapperType);
                 return wrapper.getC();
