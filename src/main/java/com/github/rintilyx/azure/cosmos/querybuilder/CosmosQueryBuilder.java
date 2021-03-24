@@ -75,7 +75,9 @@ public class CosmosQueryBuilder {
     <T> Flux<T> queryItems(FeedOptions feedOptions, Class<T> targetClass) {
         return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
-                .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties));
+                .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties))
+                .filter(wrapper -> wrapper.getC() != null)
+                .map(ResultWrapper::getC);
     }
 
     <T> List<T> queryItemsSync(FeedOptions feedOptions, Class<T> targetClass) {
@@ -86,6 +88,8 @@ public class CosmosQueryBuilder {
                         feedResponse.results()
                                 .stream()
                                 .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties))
+                                .filter(wrapper -> wrapper.getC() != null)
+                                .map(ResultWrapper::getC)
                                 .forEach(result::add);
                     });
             return result;
@@ -94,6 +98,8 @@ public class CosmosQueryBuilder {
                     .flatMapIterable(FeedResponse::results)
                     .map(cosmosItemProperties -> getDefaultConverter(targetClass).convert(cosmosItemProperties))
                     .toStream(1)
+                    .filter(wrapper -> wrapper.getC() != null)
+                    .map(ResultWrapper::getC)
                     .collect(Collectors.toList());
         }
     }
@@ -184,19 +190,18 @@ public class CosmosQueryBuilder {
                 .queryItems(this.buildQuery(), feedOptions);
     }
 
-    public <T> CosmosItemPropertiesConverter<T> getDefaultConverter(Class<T> targetClass) {
+    public <T> CosmosItemPropertiesConverter<ResultWrapper<T>> getDefaultConverter(Class<T> targetClass) {
         return (c) -> {
             try {
                 Type resultWrapperType = new TypeToken<ResultWrapper<?>>() {
                 }.getType();
-                ResultWrapper<T> wrapper = new Gson().fromJson(c.toJson(), resultWrapperType);
-                return wrapper.getC();
+                return new Gson().fromJson(c.toJson(), resultWrapperType);
             } catch (Exception ex) {
                 if (CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger() != null)
-                    CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to {} is failed due to: {}", targetClass.getName(), ex.getMessage());
+                    CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
                 else
-                    LOGGER.warn("Conversion JSON to {} is failed due to: {}", targetClass.getName(), ex.getMessage());
-                return null;
+                    LOGGER.warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
+                return new ResultWrapper<>();
             }
         };
     }
