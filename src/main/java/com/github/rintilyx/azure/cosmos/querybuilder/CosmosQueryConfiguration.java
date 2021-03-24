@@ -24,6 +24,7 @@ public class CosmosQueryConfiguration {
     private List<OrderByClause> orderBy;
     private Integer offset;
     private Integer limit;
+    private ConversionFailureStrategy onConversionFailureStrategy = ConversionFailureStrategy.STOP_ON_ERROR;
 
     public CosmosClient getCosmosClient() {
         return cosmosClient;
@@ -137,4 +138,11 @@ public class CosmosQueryConfiguration {
         this.selectionType = selectionType;
     }
 
+    public ConversionFailureStrategy getOnConversionFailureStrategy() {
+        return onConversionFailureStrategy;
+    }
+
+    public void setOnConversionFailureStrategy(ConversionFailureStrategy onConversionFailureStrategy) {
+        this.onConversionFailureStrategy = onConversionFailureStrategy;
+    }
 }

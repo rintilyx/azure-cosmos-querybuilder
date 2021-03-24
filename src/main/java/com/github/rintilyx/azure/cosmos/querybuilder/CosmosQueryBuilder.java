@@ -197,11 +197,15 @@ public class CosmosQueryBuilder {
                 }.getType();
                 return new Gson().fromJson(c.toJson(), resultWrapperType);
             } catch (Exception ex) {
-                if (CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger() != null)
-                    CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
-                else
-                    LOGGER.warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
-                return new ResultWrapper<>();
+                if (ConversionFailureStrategy.PROCEED_ON_ERROR.equals(this.cosmosQueryConfiguration.getOnConversionFailureStrategy())) {
+                    if (CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger() != null)
+                        CosmosQueryBuilder.this.cosmosQueryConfiguration.getLogger().warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
+                    else
+                        LOGGER.warn("Conversion JSON to {} is failed due to: {} \n {}", targetClass.getName(), ex.getMessage(), c.toJson());
+                    return new ResultWrapper<>();
+                } else {
+                    throw ex;
+                }
             }
         };
     }
