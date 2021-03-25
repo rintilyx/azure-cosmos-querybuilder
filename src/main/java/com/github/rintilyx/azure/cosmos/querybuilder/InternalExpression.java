@@ -5,13 +5,11 @@ class InternalExpression {
     private final Expression expression;
     private final BooleanOperator booleanOperator;
     private final Integer order;
-    private final boolean isRoot;
 
-    public InternalExpression(Expression expression, BooleanOperator booleanOperator, Integer order, boolean isRoot) {
+    public InternalExpression(Expression expression, BooleanOperator booleanOperator, Integer order) {
         this.expression = expression;
         this.booleanOperator = booleanOperator;
         this.order = order;
-        this.isRoot = isRoot;
     }
 
     Expression getExpression() {
@@ -26,9 +24,6 @@ class InternalExpression {
         return this.order;
     }
 
-    boolean isRoot() {
-        return this.isRoot;
-    }
 
     static InternalExpressionBuilder builder() {
         return new InternalExpressionBuilder();
@@ -39,7 +34,6 @@ class InternalExpression {
         private Expression expression;
         private BooleanOperator booleanOperator;
         private Integer order;
-        private boolean isRoot = false;
 
         InternalExpressionBuilder expression(Expression expression) {
             this.expression = expression;
@@ -56,13 +50,8 @@ class InternalExpression {
             return this;
         }
 
-        InternalExpressionBuilder isRoot(boolean isRoot) {
-            this.isRoot = isRoot;
-            return this;
-        }
-
         InternalExpression build() {
-            return new InternalExpression(this.expression, this.booleanOperator, this.order, this.isRoot);
+            return new InternalExpression(this.expression, this.booleanOperator, this.order);
         }
 
 

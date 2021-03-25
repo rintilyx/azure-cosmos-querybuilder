@@ -20,7 +20,7 @@ public class WhereManager {
 
     public WhereManager(CosmosQueryConfiguration cosmosQueryConfiguration, Expression expression) {
         this.cosmosQueryConfiguration = cosmosQueryConfiguration;
-        this.internalExpressionList.add(InternalExpression.builder().booleanOperator(null).expression(expression).isRoot(true).order(this.orderCounter).build());
+        this.internalExpressionList.add(InternalExpression.builder().booleanOperator(null).expression(expression).order(this.orderCounter).build());
     }
 
     public WhereManager and(Condition condition) {

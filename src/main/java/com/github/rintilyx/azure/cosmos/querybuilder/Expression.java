@@ -17,7 +17,6 @@ public class Expression {
                 InternalCondition.builder()
                         .condition(condition)
                         .booleanOperator(null)
-                        .isRoot(true)
                         .order(this.orderCounter)
                         .build()
         );

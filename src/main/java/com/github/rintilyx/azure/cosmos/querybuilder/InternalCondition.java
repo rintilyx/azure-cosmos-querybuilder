@@ -5,13 +5,11 @@ class InternalCondition {
     private final Condition condition;
     private final BooleanOperator booleanOperator;
     private final Integer order;
-    private final boolean isRoot;
 
-    public InternalCondition(Condition condition, BooleanOperator booleanOperator, Integer order, boolean isRoot) {
+    public InternalCondition(Condition condition, BooleanOperator booleanOperator, Integer order) {
         this.condition = condition;
         this.booleanOperator = booleanOperator;
         this.order = order;
-        this.isRoot = isRoot;
     }
 
     Condition getCondition() {
@@ -26,9 +24,6 @@ class InternalCondition {
         return order;
     }
 
-    boolean isRoot() {
-        return isRoot;
-    }
 
     static InternalConditionBuilder builder() {
         return new InternalConditionBuilder();
@@ -39,7 +34,6 @@ class InternalCondition {
         private Condition condition;
         private BooleanOperator booleanOperator;
         private Integer order;
-        private boolean isRoot = false;
 
         InternalConditionBuilder condition(Condition condition) {
             this.condition = condition;
@@ -56,13 +50,8 @@ class InternalCondition {
             return this;
         }
 
-        InternalConditionBuilder isRoot(boolean isRoot) {
-            this.isRoot = isRoot;
-            return this;
-        }
-
         InternalCondition build() {
-            return new InternalCondition(this.condition, this.booleanOperator, this.order, this.isRoot);
+            return new InternalCondition(this.condition, this.booleanOperator, this.order);
         }
 
 

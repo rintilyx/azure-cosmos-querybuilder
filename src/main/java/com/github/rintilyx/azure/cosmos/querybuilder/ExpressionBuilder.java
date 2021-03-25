@@ -14,7 +14,6 @@ public class ExpressionBuilder {
                         .order(this.orderCounter)
                         .condition(condition)
                         .booleanOperator(null)
-                        .isRoot(true)
                         .build()
         );
     }
@@ -26,7 +25,6 @@ public class ExpressionBuilder {
                         .order(this.orderCounter)
                         .condition(condition)
                         .booleanOperator(BooleanOperator.AND)
-                        .isRoot(false)
                         .build()
         );
         return this;
@@ -39,7 +37,6 @@ public class ExpressionBuilder {
                         .order(this.orderCounter)
                         .condition(condition)
                         .booleanOperator(BooleanOperator.OR)
-                        .isRoot(false)
                         .build()
         );
         return this;

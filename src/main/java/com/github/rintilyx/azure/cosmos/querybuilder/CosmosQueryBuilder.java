@@ -253,11 +253,17 @@ public class CosmosQueryBuilder {
     private String buildWhere(SqlParameterList sqlParameters) {
         StringBuilder result = new StringBuilder();
 
+        Boolean firstConditionApplied = Boolean.FALSE;
         for (InternalExpression internalExpression : this.cosmosQueryConfiguration.getInternalExpressionList()) {
-            if(!internalExpression.isRoot()) {
-                result.append(" ").append(internalExpression.getBooleanOperator().value()).append(" ");
+            String expression = buildExpression(internalExpression.getExpression(), sqlParameters);
+            if (StringUtils.isNotBlank(expression)) {
+                if (BooleanUtils.isTrue(firstConditionApplied)) {
+                    result.append(" ").append(internalExpression.getBooleanOperator().value()).append(" ");
+                } else {
+                    firstConditionApplied = Boolean.TRUE;
+                }
+                result.append(expression);
             }
-            result.append(buildExpression(internalExpression.getExpression(), sqlParameters));
         }
 
         return result.toString();
@@ -265,11 +271,17 @@ public class CosmosQueryBuilder {
 
     private String buildExpression(Expression expression, SqlParameterList sqlParameters) {
         StringBuilder result = new StringBuilder("(");
+        Boolean firstConditionApplied = Boolean.FALSE;
         for (InternalCondition internalCondition : expression.getInternalConditions()) {
-            if(!internalCondition.isRoot()) {
-                result.append(" ").append(internalCondition.getBooleanOperator().value()).append(" ");
+            String condition = buildCondition(internalCondition.getCondition(), sqlParameters);
+            if (StringUtils.isNotBlank(condition)) {
+                if (BooleanUtils.isTrue(firstConditionApplied)) {
+                    result.append(" ").append(internalCondition.getBooleanOperator().value()).append(" ");
+                } else {
+                    firstConditionApplied = Boolean.TRUE;
+                }
+                result.append(condition);
             }
-            result.append(buildCondition(internalCondition.getCondition(), sqlParameters));
         }
         result.append(")");
         return !StringUtils.equals("()", result) ? result.toString() : "";
@@ -291,7 +303,7 @@ public class CosmosQueryBuilder {
 
     private String getSqlParamName(SqlParameterList sqlParameterList, Condition condition) {
         if (condition.getValue() != null) {
-            String result = "@" + condition.getAttribute() + "_" + this.sequence;
+            String result = "@" + condition.getAttribute().replace(".", "_") + "_" + this.sequence;
             incrementSequence();
             sqlParameterList.add(new SqlParameter().name(result).value(condition.getValue()));
             return result;
