@@ -134,8 +134,7 @@ public class CosmosQueryBuilder {
     <T> Mono<Long> countItems(FeedOptions feedOptions) {
         return this.queryItems(feedOptions)
                 .flatMapIterable(FeedResponse::results)
-                .map(cosmosItemProperties -> cosmosItemProperties.get("_aggregate"))
-                .map(i -> Long.parseLong(String.valueOf(i)))
+                .map(cosmosItemProperties -> cosmosItemProperties.getLong("_aggregate"))
                 .reduce(Long::sum);
     }
 
@@ -146,7 +145,7 @@ public class CosmosQueryBuilder {
             while (feedResponseIterator.hasNext()) {
                 FeedResponse<CosmosItemProperties> feedResponse = feedResponseIterator.next();
                 for (CosmosItemProperties cosmosItemProperties : feedResponse.results()) {
-                    result += Long.parseLong((String) cosmosItemProperties.get("_aggregate"));
+                    result += cosmosItemProperties.getLong("_aggregate");
                 }
             }
             return result;
@@ -193,8 +192,7 @@ public class CosmosQueryBuilder {
     public <T> CosmosItemPropertiesConverter<ResultWrapper<T>> getDefaultConverter(Class<T> targetClass) {
         return (c) -> {
             try {
-                Type resultWrapperType = new TypeToken<ResultWrapper<?>>() {
-                }.getType();
+                Type resultWrapperType = new TypeToken<ResultWrapper<?>>() {}.getType();
                 return new Gson().fromJson(c.toJson(), resultWrapperType);
             } catch (Exception ex) {
                 if (ConversionFailureStrategy.PROCEED_ON_ERROR.equals(this.cosmosQueryConfiguration.getOnConversionFailureStrategy())) {

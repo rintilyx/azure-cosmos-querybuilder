@@ -1,68 +1,66 @@
 package com.github.rintilyx.azure.cosmos;
 
-import com.azure.data.cosmos.CosmosClient;
-import com.azure.data.cosmos.CosmosClientBuilder;
-import com.azure.data.cosmos.FeedOptions;
-import com.azure.data.cosmos.PartitionKey;
-import com.github.rintilyx.azure.cosmos.data.Country;
-import com.github.rintilyx.azure.cosmos.data.ProductContract;
-import com.github.rintilyx.azure.cosmos.querybuilder.CosmosCollection;
-import com.github.rintilyx.azure.cosmos.querybuilder.CosmosQuery;
-import com.github.rintilyx.azure.cosmos.querybuilder.CosmosQueryConfiguration;
-import com.google.gson.Gson;
-
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import com.azure.data.cosmos.*;
+import com.github.rintilyx.azure.cosmos.querybuilder.*;
 
 public class Main {
 
 
-    public static void main(String... args) throws ExecutionException, InterruptedException {
-        CosmosCollection cosmosCollection = new CosmosCollection("POM_Product");
 
-        CosmosClient cosmosClient = new CosmosClientBuilder()
-                .endpoint("https://localhost:8081/")
-                .key("C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==")
+    public static void main(String... args) {
+
+        CosmosCollection cosmosCollection = new CosmosCollection("POM_PurchaseOrder");
+        Condition condition = new ConditionBuilder(cosmosCollection, "purchaseOrderNumber").equalsTo(null);
+        Condition expression = new ConditionBuilder(cosmosCollection, "providedProductCodes").arrayContains(null);
+        Condition expression2 = new ConditionBuilder(cosmosCollection, "externalPurchaseOrderNumbers").arrayContains("38374");
+        Expression expression3 = new ExpressionBuilder(new ConditionBuilder(cosmosCollection, "purchaseOrderTypes").arrayContains("REGULAR_RX"))
+                .or(new ConditionBuilder(cosmosCollection, "purchaseOrderTypes").arrayContains("C2"))
                 .build();
 
-        System.out.println("Connected to Cosmos");
+        Criteria criteria = new CriteriaBuilder()
+                .where(condition)
+                .and(expression)
+                .and(expression2)
+                .and(expression3)
+                .buildCriteria();
 
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(cosmosClient);
-        cosmosQueryConfiguration.setDatabase("DEV_LOCAL");
-        List<ProductContract> products = new CosmosQuery(cosmosQueryConfiguration)
+        SqlQuerySpec query = new CosmosQuery()
                 .select()
                 .from(cosmosCollection)
-                //.where(new ConditionBuilder(cosmosCollection).attribute("name").equalsTo("United States"))
-                .queryItemsSync(new FeedOptions().partitionKey(new PartitionKey("PRODUCT")), ProductContract.class);
+                .where(criteria)
+                .orderBy(OrderByClause.of(cosmosCollection, "_ts", SortingCriteria.ASC))
+                .offset(null)
+                .limit(null)
+                .buildQuery();
 
-        System.out.println(new Gson().toJson(products));
-        return;
+        System.out.println(query.queryText());
+        System.out.println(query.parameters());
+
     }
 
+    public static void main2(String... args) {
 
-    public static void main3(String... args) {
-        CosmosCollection cosmosCollection = new CosmosCollection("Countries");
-
-        CosmosClient cosmosClient = new CosmosClientBuilder()
+        CosmosDatabase database = new CosmosClientBuilder()
                 .endpoint("https://localhost:8081/")
                 .key("C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==")
-                .build();
+                .build()
+                .getDatabase("purchaseordermanagement-3STORES");
 
-        System.out.println("Connected to Cosmos");
+        CosmosContainer refDataContainer = database.getContainer("POM_ReferenceData");
+        CosmosContainer prodContainer = database.getContainer("POM_Product");
 
-        CosmosQueryConfiguration cosmosQueryConfiguration = new CosmosQueryConfiguration();
-        cosmosQueryConfiguration.setCosmosClient(cosmosClient);
-        cosmosQueryConfiguration.setDatabase("DEV_LOCAL");
-        List<Country> products = new CosmosQuery(cosmosQueryConfiguration)
-                .select()
-                .from(cosmosCollection)
-                //.where(new ConditionBuilder(cosmosCollection).attribute("name").equalsTo("United States"))
-                .queryItemsSync(new FeedOptions(), Country.class);
+        System.out.println("Inizio...");
 
-        System.out.println(new Gson().toJson(products));
-        return;
+        FeedOptions feedOptions = new FeedOptions();
+        feedOptions.maxItemCount(-1);
+        prodContainer
+                .queryItems("SELECT * FROM POM_Product c")
+                .subscribe(result -> System.out.println("count: " + result.results().size()));
+
+        while(true);
+
     }
+
 
 
 }

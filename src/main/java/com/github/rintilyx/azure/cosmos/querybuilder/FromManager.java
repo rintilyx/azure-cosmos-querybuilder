@@ -24,6 +24,10 @@ public class FromManager {
         return this;
     }
 
+    public WhereManager where(Criteria criteria) {
+        return new WhereManager(this.cosmosQueryConfiguration, criteria.getInternalExpressionList());
+    }
+
     public WhereManager where(Condition condition) {
         this.cosmosQueryConfiguration.setJoins(joins);
         return new WhereManager(this.cosmosQueryConfiguration, new ExpressionBuilder(condition).build());

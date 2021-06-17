@@ -23,6 +23,11 @@ public class WhereManager {
         this.internalExpressionList.add(InternalExpression.builder().booleanOperator(null).expression(expression).order(this.orderCounter).build());
     }
 
+    public WhereManager(CosmosQueryConfiguration cosmosQueryConfiguration, List<InternalExpression> internalExpressionList) {
+        this.cosmosQueryConfiguration = cosmosQueryConfiguration;
+        this.internalExpressionList.addAll(internalExpressionList);
+    }
+
     public WhereManager and(Condition condition) {
         this.orderCounter += 1;
         this.internalExpressionList.add(

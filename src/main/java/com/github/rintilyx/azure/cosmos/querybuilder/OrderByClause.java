@@ -18,6 +18,10 @@ public class OrderByClause {
         this.criteria = criteria;
     }
 
+    public static OrderByClause of(CosmosReference cosmosReference, String attribute, SortingCriteria criteria) {
+        return new OrderByClause(cosmosReference, attribute, criteria);
+    }
+
     CosmosReference getCosmosReference() {
         return cosmosReference;
     }
