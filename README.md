@@ -106,7 +106,7 @@ public SqlQuerySpec buildQuery(String name) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Build condition
-    Condition United StatesCondition = new ConditionBuilder(countries)
+    Condition statesCondition = new ConditionBuilder(countries)
                     .attribute("name")
                     .equalsTo(name);
 
@@ -114,7 +114,7 @@ public SqlQuerySpec buildQuery(String name) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .where(United StatesCondition)
+            .where(statesCondition)
             .buildQuery();
 }
 ```
@@ -141,7 +141,7 @@ public SqlQuerySpec buildQuery(String name) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Build condition
-    Condition United StatesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
+    Condition statesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
                     .attribute("name")
                     .includeIfNull(false) // if name is null, the condition will be removed from query
                     .equalsTo(name);
@@ -150,7 +150,7 @@ public SqlQuerySpec buildQuery(String name) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .where(United StatesCondition)
+            .where(statesCondition)
             .buildQuery();
 }
 ```
@@ -177,7 +177,7 @@ public SqlQuerySpec buildQuery(String name) {
     CosmosCollection countries = new CosmosCollection("Countries");
 
     // Build condition
-    Condition United StatesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
+    Condition statesCondition = new ConditionBuilder(countries) // This condition will be built using countries collection reference
                     .attribute("name")
                     .includeIfNull(true) // if name is null, the condition will be removed from query
                     .equalsTo(name);
@@ -186,7 +186,7 @@ public SqlQuerySpec buildQuery(String name) {
     return new CosmosQuery()
             .select()
             .from(countries)
-            .where(United StatesCondition)
+            .where(statesCondition)
             .buildQuery();
 }
 ```
